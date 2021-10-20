@@ -1,8 +1,15 @@
 {
     "compilerOptions": {
         "target": "ES6",
-        "moduleResolution": "node",
-        "strict": true
+      "moduleResolution": "node",
+      "baseUrl": ".",
+      "outDir": "../../dist/client",
+      "strict": true,
+      "paths": {
+        "three/examples/jsm/libs/dat.gui.module": [
+          "../../node_modules/@types/dat.gui"
+        ]
+      }
     },
     "include": [
         "**/*.ts"
