@@ -1,7 +1,7 @@
 import IComponent from '../Components/IComponent'
 
 export default class Entity{
-    private components: {[key: string]: any} = {}
+    private components: {[key: string]: IComponent} = {}
     private isActive: boolean = false
     constructor(
         private tag: string
@@ -49,6 +49,8 @@ export default class Entity{
 
     GetComponent<T extends IComponent>(type: (new() => T)): T | undefined {
         if (!this.HasComponent(type)) return undefined;
-        return this.components[type.name];
+        const component = this.components[type.name];
+        if (component instanceof type)
+            return component;
     }
 }

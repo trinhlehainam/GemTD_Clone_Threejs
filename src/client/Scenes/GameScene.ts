@@ -1,4 +1,5 @@
 import IScene from './IScene'
+import TitleScene from './TitleScene'
 
 export default class GameScene extends IScene {
     constructor() {
@@ -14,6 +15,8 @@ export default class GameScene extends IScene {
     }
 
     ChangeScene(scene: IScene): IScene {
+        console.log('GameScene to TitleScene');
+        scene = new TitleScene();
         return scene;
     }
 }

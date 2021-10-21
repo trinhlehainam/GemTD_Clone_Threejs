@@ -15,6 +15,7 @@ export default class TitleScene extends IScene {
     }
 
     ChangeScene(scene: IScene): IScene {
+        console.log('TitleScene to GameScene');
         scene = new GameScene();
         scene.Init();
         return scene;
