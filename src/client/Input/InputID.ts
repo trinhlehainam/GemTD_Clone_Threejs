@@ -2,7 +2,8 @@ enum INPUT_ID {
     LEFT,
     RIGHT,
     UP,
-    DOWN
+    DOWN,
+    SPACE
 }
 
 export default INPUT_ID;
