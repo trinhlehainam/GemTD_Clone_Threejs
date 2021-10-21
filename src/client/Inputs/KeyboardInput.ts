@@ -18,26 +18,15 @@ export default class KeyboardInput extends IInput {
 
     Update(): void {
         if (this.inputCodes === undefined) return;
+        this.updateKeys = [...this.keyboardKeys];
         
         this.currentState = (this.currentState + 1) % this.kNumStates;
 
         for (let id = 0; id < this.kNumInputs; ++id){
             this.SetInputState(id, this.updateKeys[this.inputCodes[id]]);
         }
-        /* const oldkey = this.updateKeys[32];
-        const newKey = this.keyboardKeys[32];
-        console.log(oldkey + ' ' + newKey); */
-        this.updateKeys = [...this.keyboardKeys];
     }
 
-    IsJustPressed(inputID: INPUT_ID): boolean {
-        if (this.inputCodes === undefined) return false;
-
-        const oldkey = this.updateKeys[this.inputCodes[inputID]];
-        const newKey = this.keyboardKeys[this.inputCodes[inputID]];
-        return newKey && !oldkey;
-    }
-    
     private keyDown(event: KeyboardEvent): void {
         this.keyboardKeys[event.keyCode] = true; 
     }

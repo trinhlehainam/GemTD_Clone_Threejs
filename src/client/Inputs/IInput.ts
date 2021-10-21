@@ -1,21 +1,21 @@
 import INPUT_ID from './InputID'
 
 export default abstract class IInput {
-    protected inputCodes?: number[];
+    protected inputCodes: number[];
     protected inputStates: [boolean[], boolean[]]
     protected currentState: number;
     protected readonly kNumStates: number;
     protected readonly kNumInputs: number;
 
-    constructor(inputs?: number[]){
+    constructor(inputs: number[]){
         this.inputCodes = inputs;
         this.currentState = 0; 
 
         this.kNumInputs = Object.keys(INPUT_ID)
         .filter(key => isNaN(Number(key))).length;
 
-        let initState = Array<boolean>(this.kNumInputs).fill(false);
-        this.inputStates = [initState, initState];
+        let initState = Array<boolean>(this.kNumInputs).fill(true);
+        this.inputStates = [[...initState], [...initState]];
         this.kNumStates = this.inputStates.length;
     }
 
@@ -28,6 +28,7 @@ export default abstract class IInput {
     IsJustPressed(inputID: INPUT_ID): boolean {
         const currentState = this.inputStates[this.currentState][inputID];
         const previousState = this.inputStates[this.PreviousState()][inputID];
+        // console.log(currentState + ' ' + previousState);
         return currentState && !previousState;
     }
 

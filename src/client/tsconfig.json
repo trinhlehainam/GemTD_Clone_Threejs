@@ -6,9 +6,6 @@
       "outDir": "../../dist/client",
       "strict": true,
       "paths": {
-        "three/dat.gui.module": [
-          "../../node_modules/@types/dat.gui"
-        ]
       }
     },
     "include": [

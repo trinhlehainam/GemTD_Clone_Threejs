@@ -35,6 +35,7 @@ export default class SceneMng {
 
     Loop(): void {
         const deltaTime_s = this.clock.getDelta();
+        this.controller.Update();
 
         if (this.controller.IsJustPressed(INPUT_ID.SPACE)) {
            this.scene = this.scene.ChangeScene(this.scene); 
@@ -44,7 +45,6 @@ export default class SceneMng {
 
         this.scene.Render();
         this.renderer.render(this.scene.GetScene(), this.scene.GetCamera());
-        this.controller.Update();
     }
 
     GetRenderer(): WebGLRenderer { return this.renderer; }
