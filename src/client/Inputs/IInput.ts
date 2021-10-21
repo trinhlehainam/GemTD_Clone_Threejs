@@ -28,7 +28,6 @@ export default abstract class IInput {
     IsJustPressed(inputID: INPUT_ID): boolean {
         const currentState = this.inputStates[this.currentState][inputID];
         const previousState = this.inputStates[this.PreviousState()][inputID];
-        // console.log(currentState + ' ' + previousState);
         return currentState && !previousState;
     }
 
