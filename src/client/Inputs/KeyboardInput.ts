@@ -35,7 +35,6 @@ export default class KeyboardInput extends IInput {
 
         const oldkey = this.updateKeys[this.inputCodes[inputID]];
         const newKey = this.keyboardKeys[this.inputCodes[inputID]];
-        console.log(oldkey + ' ' + newKey);
         return newKey && !oldkey;
     }
     

@@ -1,9 +1,10 @@
 import IScene from './IScene'
+import SceneMng from '../Systems/SceneMng'
 import GameScene from './GameScene'
 
 export default class TitleScene extends IScene {
-    constructor() {
-        super();
+    constructor(sceneMng: SceneMng) {
+        super(sceneMng);
     }
 
     Init(): boolean {
@@ -14,9 +15,13 @@ export default class TitleScene extends IScene {
 
     }
 
+    Render(): void {
+
+    }
+
     ChangeScene(scene: IScene): IScene {
         console.log('TitleScene to GameScene');
-        scene = new GameScene();
+        scene = new GameScene(this.sceneMng);
         scene.Init();
         return scene;
     }

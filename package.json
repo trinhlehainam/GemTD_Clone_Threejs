@@ -13,6 +13,7 @@
         "@types/dat.gui": "^0.7.7",
         "@types/node": "^16.11.1",
         "@types/three": "^0.133.1",
+        "dat.gui": "^0.7.7",
         "three": "^0.133.1",
         "ts-loader": "^9.2.6",
         "tslint": "^6.1.3",

@@ -1,6 +1,4 @@
 import {WebGLRenderer, Color, Clock, PerspectiveCamera} from 'three'
-import Stats from 'three/examples/jsm/libs/stats.module'
-import {GUI} from 'three/examples/jsm/libs/dat.gui.module'
 
 import IScene from '../Scenes/IScene'
 import TitleScene from '../Scenes/TitleScene'
@@ -13,10 +11,6 @@ export default class SceneMng {
     private clock: Clock
     private controller: KeyboardInput
     
-    // Debug
-    private stats: Stats
-    private gui: GUI
-
     constructor() {
         this.renderer = new WebGLRenderer({antialias: true, alpha: true});
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -26,11 +20,8 @@ export default class SceneMng {
         document.body.appendChild(this.renderer.domElement);
 
         this.clock = new Clock();
-        this.stats = Stats();
-        document.body.appendChild(this.stats.domElement);
-        this.gui = new GUI();
 
-        this.scene = new TitleScene();
+        this.scene = new TitleScene(this);
 
         this.controller = new KeyboardInput([37,39,40,38,32]);
 
@@ -50,11 +41,13 @@ export default class SceneMng {
         }
 
         this.scene.Update(deltaTime_s); 
-        this.stats.update();
-        this.gui.updateDisplay();
+
+        this.scene.Render();
         this.renderer.render(this.scene.GetScene(), this.scene.GetCamera());
         this.controller.Update();
     }
+
+    GetRenderer(): WebGLRenderer { return this.renderer; }
 
     private onResizeWindow(): void {
         const camera = this.scene.GetCamera();

@@ -1,4 +1,4 @@
-import Entity from '../GameObject/Entity'
+import Entity from '../GameObjects/Entity'
 
 export default abstract class IComponent {
     private owner?: Entity
