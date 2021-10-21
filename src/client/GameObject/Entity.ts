@@ -28,11 +28,11 @@ export default class Entity{
         }
     }
     
-    HasComponent<T extends IComponent>(type: (new() => T)): boolean{
+    HasComponent<T extends IComponent>(type: (new() => T)): boolean {
         return this.components.hasOwnProperty(type.name);
     }
 
-    AddComponent<T extends IComponent>(type: (new() => T)): T | undefined{
+    AddComponent<T extends IComponent>(type: (new() => T)): T | undefined {
         if (this.HasComponent(type)) return undefined;
 
         this.components[type.name] = new type();
@@ -45,5 +45,10 @@ export default class Entity{
             return component;
         }
         return undefined;
+    }
+
+    GetComponent<T extends IComponent>(type: (new() => T)): T | undefined {
+        if (!this.HasComponent(type)) return undefined;
+        return this.components[type.name];
     }
 }

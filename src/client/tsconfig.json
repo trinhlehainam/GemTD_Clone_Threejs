@@ -6,7 +6,7 @@
       "outDir": "../../dist/client",
       "strict": true,
       "paths": {
-        "dat.gui.module": [
+        "three/examples/jsm/libs/dat.gui.module": [
           "../../node_modules/@types/dat.gui"
         ]
       }
