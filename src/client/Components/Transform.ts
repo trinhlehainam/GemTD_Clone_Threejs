@@ -4,6 +4,7 @@ import {Vector3} from 'three'
 export default class Transform extends IComponent {
     public position:Vector3
     public scale:Vector3
+
     constructor() { 
         super(); 
         this.position = new Vector3();

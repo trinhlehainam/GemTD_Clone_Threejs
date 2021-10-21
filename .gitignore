@@ -86,3 +86,7 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+# Webpack bundle
+**/bundle.js
+**/main.js

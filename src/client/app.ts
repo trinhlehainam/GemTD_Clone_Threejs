@@ -3,7 +3,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
-import {GUI} from 'three/examples/jsm/libs/dat.gui.module'
+import {GUI} from 'dat.gui.module'
 
 export default class App {
     private renderer: THREE.WebGLRenderer
@@ -14,6 +14,7 @@ export default class App {
     private model?: THREE.Group
     private stats: Stats;
     private gui: GUI;
+
     constructor(){
         this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
         this.renderer.setSize(window.innerWidth, window.innerHeight);
