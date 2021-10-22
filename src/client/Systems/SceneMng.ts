@@ -1,4 +1,4 @@
-import {WebGLRenderer, Color, Clock, PerspectiveCamera} from 'three'
+import {WebGLRenderer, Color, Clock, PerspectiveCamera, sRGBEncoding} from 'three'
 
 import IScene from '../Scenes/IScene'
 import TitleScene from '../Scenes/TitleScene'
@@ -16,12 +16,14 @@ export default class SceneMng {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setClearColor(new Color(0x000000));
+        this.renderer.outputEncoding = sRGBEncoding;
         this.renderer.shadowMap.enabled = true;
         document.body.appendChild(this.renderer.domElement);
 
         this.clock = new Clock();
 
         this.scene = new TitleScene(this);
+        this.scene.Init();
 
         this.controller = new KeyboardInput([37,39,40,38,32]);
     }

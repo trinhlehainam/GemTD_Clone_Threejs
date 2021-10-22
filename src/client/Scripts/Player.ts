@@ -1,6 +1,7 @@
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
-import {Scene, Group, Mesh, AnimationMixer} from 'three'
+import {Scene, Group, Mesh, AnimationMixer, AnimationAction} from 'three'
+import {GUI} from 'dat.gui'
 
 import Entity from '../GameObjects/Entity'
 import Transform from '../Components/Transform'
@@ -13,13 +14,25 @@ export default class Player {
     private mixer?: AnimationMixer
     private constroller: KeyboardInput
     private scene: Scene;
+    private actions: {[key: string]: AnimationAction}
+    private currentActionKey: string
+    
+    // Debug
+    private gui: GUI
+    private options: any
     constructor(scene: Scene){
         this.scene = scene;
         this.enitty = new Entity('player');
         this.enitty.AddComponent(Transform);
         const url: string = './assets/factory/eve.glb';
         this.loadGLTF(url);
-        this.constroller = new KeyboardInput([37,39,38,40,32]);
+        this.constroller = new KeyboardInput([37,39,38,40,65]);
+        this.actions = {};
+        this.actions = {};
+        this.currentActionKey = "";
+
+        this.gui = new GUI();
+        this.options = {};
     }
     
     processInput(): void {
@@ -29,23 +42,76 @@ export default class Player {
     update(dt_s: number): void {
         const transform = this.enitty.GetComponent(Transform);
         if (transform === undefined) return;
+        let idle: boolean = true;
         
-        const speed = 1.0;
+        const speed = 2.0;
         if (this.constroller.IsPressed(INPUT_ID.LEFT)) {
+            idle = false;
             transform.position.x += speed * dt_s;
         }
         if (this.constroller.IsPressed(INPUT_ID.RIGHT)) {
+            idle = false;
             transform.position.x += -speed * dt_s;
         }
         if (this.constroller.IsPressed(INPUT_ID.UP)) {
+            idle = false;
             transform.position.z += speed * dt_s;
         }
         if (this.constroller.IsPressed(INPUT_ID.DOWN)) {
+            idle = false;
             transform.position.z += -speed * dt_s;
         }
 
+        if (this.constroller.IsPressed(INPUT_ID.SPACE))
+            this.setAnim('firing', 0.2);
+        else if (Object.keys(this.actions).length > 0)
+            !idle ? this.setAnim('run', 0.2) : this.setAnim('idle', 0.2);
+
         if (this.model) this.model.position.copy(transform.position);
         this.mixer?.update(dt_s);
+
+        this.updateGUI();
+    }
+
+    render(): void {
+        this.gui.updateDisplay();
+    }
+
+    private createGUI(): void {
+        const idle = this.actions['idle'];
+        const walk = this.actions['walk'];
+        const run = this.actions['run'];
+
+        this.options = {
+            idleWeight: idle.getEffectiveWeight(),
+            walkWeight: walk.getEffectiveWeight(),
+            runWeight: run.getEffectiveWeight(),
+            animKey: this.currentActionKey,
+            animList: Object.keys(this.actions)
+        }
+
+        const anim = this.gui.addFolder('Animation');
+        anim.add(this.options, 'animKey');
+        console.log(this.options.animList);
+        anim.open();
+
+        const weight = this.gui.addFolder('Weights');
+        weight.add(this.options, 'idleWeight', 0, 1 , 0.1);
+        weight.add(this.options, 'walkWeight', 0, 1, 0.1);
+        weight.add(this.options, 'runWeight', 0, 1, 0.1);
+        weight.open();
+    }
+
+    private updateGUI(): void {
+        if (Object.keys(this.actions).length == 0) return;
+
+        const idle = this.actions['idle'];
+        const walk = this.actions['walk'];
+        const run = this.actions['run'];
+        this.options.idleWeight = idle.getEffectiveWeight();
+        this.options.walkWeight = walk.getEffectiveWeight();
+        this.options.runWeight = run.getEffectiveWeight();
+        this.options.animKey = this.currentActionKey;
     }
 
     private loadGLTF(url: string): void{
@@ -59,8 +125,11 @@ export default class Player {
             gltf => {
                 this.model = gltf.scene;
                 this.mixer = new AnimationMixer(this.model);
-                const clip = this.mixer.clipAction(gltf.animations[1]);
-                clip.play();
+                gltf.animations.forEach(anim => {
+                    this.actions[anim.name.toLowerCase()] = this.mixer!.clipAction(anim);
+                })
+                this.currentActionKey = 'idle';
+                this.actions[this.currentActionKey].play();
                 this.model.traverse(node => {
                     if(node instanceof Mesh){
                         // node.receiveShadow = true;
@@ -68,7 +137,7 @@ export default class Player {
                     }
                 })
                 this.scene.add(this.model);
-                console.log(this.scene);
+                this.createGUI();
             },
             xhr => {
 
@@ -77,5 +146,30 @@ export default class Player {
                 console.error(err);
             }
         )
+    }
+
+    setAnim(animKey: string, duration: number): void {
+        if (this.currentActionKey === animKey) return;
+        this.crossFadeAnim(animKey, duration);
+        this.currentActionKey = animKey;
+    }
+
+    setWeight(animKey: string, weight: number): void {
+        const action = this.actions[animKey];
+        action.enabled = true;
+        action.setEffectiveTimeScale(1);
+        action.setEffectiveWeight(weight);
+    }
+
+    crossFadeAnim(animKey: string, duration: number): void {
+        this.setWeight(animKey, 1);
+        const currentAction = this.actions[this.currentActionKey]
+        const nextAcion = this.actions[animKey];
+        nextAcion.time = 0;
+        currentAction.crossFadeTo(nextAcion, duration, true);
+        nextAcion.play();
+    }
+
+    waitActionFinished(){
     }
 }

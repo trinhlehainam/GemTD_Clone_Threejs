@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 import Stats from 'three/examples/jsm/libs/stats.module'
-import {GUI} from 'dat.gui'
 
 import IScene from './IScene'
 import SceneMng from '../Systems/SceneMng'
@@ -12,7 +11,6 @@ import Player from '../Scripts/Player'
 export default class GameScene extends IScene {
     // Debug
     private stats: Stats
-    private gui: GUI
     private player: Player
 
     constructor(sceneMng: SceneMng) {
@@ -20,7 +18,6 @@ export default class GameScene extends IScene {
 
         this.stats = Stats();
         document.body.appendChild(this.stats.domElement);
-        this.gui = new GUI();
 
         const dirLight = new THREE.DirectionalLight(0xffffff, 1);
         dirLight.position.set(2,2,2);
@@ -63,7 +60,7 @@ export default class GameScene extends IScene {
 
     Render(): void {
         this.stats.update();
-        this.gui.updateDisplay();
+        this.player.render();
     }
 
     ChangeScene(scene: IScene): IScene {
