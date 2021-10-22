@@ -48,7 +48,15 @@ export default abstract class IInput {
         }
         return false;
     }
-    
+
+    GetJustPressedKeys(): INPUT_ID[] {
+        let ret: INPUT_ID[] = [];
+        for(let id = 0; id < this.kNumInputs; ++id)
+            if(this.IsJustPressed(id))
+                ret.push(id)
+        return ret;
+    }
+
     protected SetInputState(inputID: INPUT_ID, state: boolean): void {
         this.inputStates[this.currentState][inputID] = state;        
     }

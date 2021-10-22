@@ -9,7 +9,6 @@ import TitleScene from './TitleScene'
 import Player from '../Scripts/Player'
 
 export default class GameScene extends IScene {
-    // Debug
     private stats: Stats
     private player: Player
 
@@ -64,8 +63,6 @@ export default class GameScene extends IScene {
     }
 
     ChangeScene(scene: IScene): IScene {
-        console.log('GameScene to TitleScene');
-        scene = new TitleScene(this.sceneMng);
         return scene;
     }
 }

@@ -26,8 +26,7 @@ export default class Player {
         this.enitty.AddComponent(Transform);
         const url: string = './assets/factory/eve.glb';
         this.loadGLTF(url);
-        this.constroller = new KeyboardInput([37,39,38,40,65]);
-        this.actions = {};
+        this.constroller = new KeyboardInput([37,39,38,40,65,16]);
         this.actions = {};
         this.currentActionKey = "";
 
@@ -42,30 +41,27 @@ export default class Player {
     update(dt_s: number): void {
         const transform = this.enitty.GetComponent(Transform);
         if (transform === undefined) return;
-        let idle: boolean = true;
+        let walk: boolean = false;
+        let run: boolean = false;
         
-        const speed = 2.0;
-        if (this.constroller.IsPressed(INPUT_ID.LEFT)) {
-            idle = false;
-            transform.position.x += speed * dt_s;
-        }
-        if (this.constroller.IsPressed(INPUT_ID.RIGHT)) {
-            idle = false;
-            transform.position.x += -speed * dt_s;
-        }
+        let speed = 0.0;
         if (this.constroller.IsPressed(INPUT_ID.UP)) {
-            idle = false;
-            transform.position.z += speed * dt_s;
-        }
-        if (this.constroller.IsPressed(INPUT_ID.DOWN)) {
-            idle = false;
-            transform.position.z += -speed * dt_s;
+            walk = true;
+            speed = 1.0;
+            if (this.constroller.IsPressed(INPUT_ID.SHIFT))
+                run = true; 
         }
 
         if (this.constroller.IsPressed(INPUT_ID.SPACE))
             this.setAnim('firing', 0.2);
-        else if (Object.keys(this.actions).length > 0)
-            !idle ? this.setAnim('run', 0.2) : this.setAnim('idle', 0.2);
+        else if (Object.keys(this.actions).length > 0){
+            if (run)
+                this.setAnim('run', 1);
+            else if (walk)
+                this.setAnim('walk', 0.5);
+            else
+                this.setAnim('idle', 0.5);
+        }
 
         if (this.model) this.model.position.copy(transform.position);
         this.mixer?.update(dt_s);
@@ -154,18 +150,13 @@ export default class Player {
         this.currentActionKey = animKey;
     }
 
-    setWeight(animKey: string, weight: number): void {
-        const action = this.actions[animKey];
-        action.enabled = true;
-        action.setEffectiveTimeScale(1);
-        action.setEffectiveWeight(weight);
-    }
-
     crossFadeAnim(animKey: string, duration: number): void {
-        this.setWeight(animKey, 1);
         const currentAction = this.actions[this.currentActionKey]
         const nextAcion = this.actions[animKey];
-        nextAcion.time = 0;
+
+        nextAcion.reset();
+        nextAcion.setEffectiveTimeScale(1);
+        nextAcion.setEffectiveWeight(1);
         currentAction.crossFadeTo(nextAcion, duration, true);
         nextAcion.play();
     }
