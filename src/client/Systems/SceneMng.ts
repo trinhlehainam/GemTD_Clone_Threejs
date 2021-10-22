@@ -24,7 +24,6 @@ export default class SceneMng {
         this.scene = new TitleScene(this);
 
         this.controller = new KeyboardInput([37,39,40,38,32]);
-
     }
 
     Init(): boolean {

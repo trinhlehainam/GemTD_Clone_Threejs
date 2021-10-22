@@ -7,11 +7,13 @@ import IScene from './IScene'
 import SceneMng from '../Systems/SceneMng'
 import TitleScene from './TitleScene'
 
+import Player from '../Scripts/Player'
+
 export default class GameScene extends IScene {
     // Debug
     private stats: Stats
     private gui: GUI
-    private cube: THREE.Mesh
+    private player: Player
 
     constructor(sceneMng: SceneMng) {
         super(sceneMng);
@@ -20,19 +22,28 @@ export default class GameScene extends IScene {
         document.body.appendChild(this.stats.domElement);
         this.gui = new GUI();
 
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(2,2,2);
+        dirLight.target.lookAt(0,0,0);
+        dirLight.castShadow = true;
+        this.scene.add(dirLight);
+
+        const ambient = new THREE.AmbientLight(0x666666);
+        this.scene.add(ambient);
+
+        const axis = new THREE.AxesHelper(10);
+        this.scene.add(axis);
+
         const planeGeo = new THREE.PlaneGeometry(60, 40);
-        const planeMat = new THREE.MeshBasicMaterial({color: 0xaaaaaa});
+        const planeMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
         const plane = new THREE.Mesh(planeGeo, planeMat);
+        plane.receiveShadow = true;
         plane.rotateX(-0.5*Math.PI);
         this.scene.add(plane);
 
-        const cubeGeo = new THREE.BoxGeometry(1, 1, 1);
-        const cubeMat = new THREE.MeshBasicMaterial({color: 0xffff00});
-        this.cube = new THREE.Mesh(cubeGeo, cubeMat);
-        this.cube.position.set(0,1,1);
-        this.scene.add(this.cube);
-
         new OrbitControls(this.camera, this.sceneMng.GetRenderer().domElement);
+
+        this.player = new Player(this.scene);
     }
 
     Init(): boolean {
@@ -41,7 +52,9 @@ export default class GameScene extends IScene {
     }
 
     Update(deltaTime_s: number): void {
-        this.cube.rotation.y += 1 * deltaTime_s;
+        this.player.processInput();
+
+        this.player.update(deltaTime_s);
     }
 
     Render(): void {
