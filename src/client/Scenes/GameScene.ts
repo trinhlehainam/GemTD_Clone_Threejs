@@ -46,6 +46,10 @@ export default class GameScene extends IScene {
         this.player = new Player(this.scene);
     }
 
+    ProcessInput(): void {
+
+    }
+
     Init(): boolean {
         this.sceneMng.GetRenderer().setClearColor(0x00aaaa);
         return true;

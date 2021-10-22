@@ -7,6 +7,10 @@ export default class TitleScene extends IScene {
         super(sceneMng);
     }
 
+    ProcessInput(): void {
+
+    }
+
     Init(): boolean {
         return true;
     }

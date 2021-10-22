@@ -63,7 +63,7 @@ export default class Player {
                 clip.play();
                 this.model.traverse(node => {
                     if(node instanceof Mesh){
-                        node.receiveShadow = true;
+                        // node.receiveShadow = true;
                         node.castShadow = true;
                     }
                 })

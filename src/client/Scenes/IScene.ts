@@ -21,12 +21,13 @@ export default abstract class IScene {
     }
 
     abstract Init(): boolean;
+    abstract ProcessInput(): void;
     abstract Update(deltaTime_s: number): void;
     abstract Render(): void;
     abstract ChangeScene(scene: IScene): IScene;
 
     SetEnable(flag: boolean): void { this.isEnable = flag; }
-    GetScene(): Scene { return this.scene; }
-    GetCamera(): Camera { return this.camera; }
+    GetThreeScene(): Scene { return this.scene; }
+    GetThreeCamera(): Camera { return this.camera; }
     IsEnable(): boolean { return this.isEnable; }
 }

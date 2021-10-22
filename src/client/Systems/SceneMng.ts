@@ -43,13 +43,13 @@ export default class SceneMng {
         this.scene.Update(deltaTime_s); 
 
         this.scene.Render();
-        this.renderer.render(this.scene.GetScene(), this.scene.GetCamera());
+        this.renderer.render(this.scene.GetThreeScene(), this.scene.GetThreeCamera());
     }
 
     GetRenderer(): WebGLRenderer { return this.renderer; }
 
     private onResizeWindow(): void {
-        const camera = this.scene.GetCamera();
+        const camera = this.scene.GetThreeCamera();
         if (camera instanceof PerspectiveCamera) {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
