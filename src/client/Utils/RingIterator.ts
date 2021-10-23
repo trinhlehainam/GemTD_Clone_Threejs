@@ -11,12 +11,12 @@ export default class RingIterator<T> {
         if(isReversed) this.isReversed = isReversed;
         
         // NOTE:First time enter next() will immediately change index value
-        // -> Resolved index before enter next() depend on isReversed flag
+        // -> Set up index before enter next() depend on isReversed flag
         this.index = this.isReversed ? index + 1: index - 1;
     }
 
     next() {
-        if (!(this.loopIndex < this.size - 1))
+        if (!this.loopCondition())
             return {value: undefined, done: true};
 
         ++this.loopIndex;
@@ -27,5 +27,9 @@ export default class RingIterator<T> {
             this.index = (this.index + 1) % this.size;
 
         return {value: this.ptr[this.index], done: false};
+    }
+
+    private loopCondition(): boolean {
+        return this.loopIndex < this.size - 1;
     }
 }

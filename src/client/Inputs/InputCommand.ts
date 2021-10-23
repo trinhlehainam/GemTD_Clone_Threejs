@@ -1,3 +1,5 @@
+import Ring from '../Utils/Ring'
+
 import IInput from './IInput'
 import INPUT_ID from './InputID'
 
@@ -9,12 +11,12 @@ type InputInfo = {
 export default class InputCommand {
     private constroller: IInput
     private patternMap: Map<string, INPUT_ID[]>
-    private m_inputs: Array<InputInfo>
+    private m_inputs: Ring<InputInfo>
 
     constructor(controller: IInput){
         this.constroller = controller;
         this.patternMap = new Map();
-        this.m_inputs = new Array();
+        this.m_inputs = new Ring<InputInfo>(10);
     }
 
     AddPattern(patternKey: string, inputIDs: INPUT_ID[]): void {
@@ -32,13 +34,15 @@ export default class InputCommand {
         const currentTimeStamp = Date.now();
         let matchCount = 0;
         for (let input of this.m_inputs) {
+            if (!input) return false;
+
             const elapsedTime_s = currentTimeStamp - input.timeStamp;
 
             if (timeOut_s)
                 if (elapsedTime_s > timeOut_s)
                     continue;
             
-            // If pattern match increase matchCount by one else reset to 0
+            // NOTE:If pattern match increase matchCount by 1 else reset to 0
             matchCount = input.id === pattern[matchCount] ? matchCount + 1 : 0;
             if (matchCount > kMatchNum)
                 return true;
@@ -51,7 +55,7 @@ export default class InputCommand {
         const justPressedKeys = this.constroller.GetJustPressedKeys();
 
         for (const key of justPressedKeys)
-            this.m_inputs.push({id: key, timeStamp: Date.now()});
+            this.m_inputs.insert({id: key, timeStamp: Date.now()});
     }
 
 }
