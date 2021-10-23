@@ -15,7 +15,10 @@ export default abstract class IInput {
         .filter(key => isNaN(Number(key))).length;
 
         let initState = Array<boolean>(this.kNumInputs).fill(true);
+        // NOTE: Each input state has a copy of initState 
+        // avoid both state reference to one object
         this.inputStates = [[...initState], [...initState]];
+
         this.kNumStates = this.inputStates.length;
     }
 
@@ -42,11 +45,7 @@ export default abstract class IInput {
     }
 
     IsAnyKeyPressed(): boolean {
-        for (let i = 0; i < this.kNumInputs; ++i){
-            if (this.inputStates[this.currentState][i] === true)
-                return true;
-        }
-        return false;
+        return this.inputStates[this.currentState].some(ele => ele === true);
     }
 
     GetJustPressedKeys(): INPUT_ID[] {
