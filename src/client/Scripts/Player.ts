@@ -6,16 +6,18 @@ import {GUI} from 'dat.gui'
 import Entity from '../GameObjects/Entity'
 import Transform from '../Components/Transform'
 import KeyboardInput from '../Inputs/KeyboardInput'
+import InputCommand from '../Inputs/InputCommand'
 import INPUT_ID from '../Inputs/InputID'
 
 export default class Player {
     private enitty: Entity
     private model?: Group
     private mixer?: AnimationMixer
-    private constroller: KeyboardInput
     private scene: Scene;
     private actions: {[key: string]: AnimationAction}
     private currentActionKey: string
+    private constroller: KeyboardInput
+    private inputCommand: InputCommand
     
     // Debug
     private gui: GUI
@@ -26,9 +28,19 @@ export default class Player {
         this.enitty.AddComponent(Transform);
         const url: string = './assets/factory/eve.glb';
         this.loadGLTF(url);
-        this.constroller = new KeyboardInput([37,39,38,40,65,16]);
         this.actions = {};
         this.currentActionKey = "";
+
+        this.constroller = new KeyboardInput([37,39,38,40,65,16]);
+        this.inputCommand = new InputCommand(this.constroller);
+        this.inputCommand.AddPattern(
+            'shot',
+            [INPUT_ID.LEFT, INPUT_ID.LEFT, INPUT_ID.LEFT]
+        )
+        this.inputCommand.AddPattern(
+            'firing',
+            [INPUT_ID.SPACE, INPUT_ID.SPACE, INPUT_ID.SPACE]
+        )
 
         this.gui = new GUI();
         this.options = {};
@@ -36,12 +48,13 @@ export default class Player {
     
     processInput(): void {
         this.constroller.Update();
+        this.inputCommand.Update();
     }
 
     update(dt_s: number): void {
         const transform = this.enitty.GetComponent(Transform);
         if (transform === undefined) return;
-        let walk: boolean = false;
+        /* let walk: boolean = false;
         let run: boolean = false;
         
         let speed = 0.0;
@@ -59,6 +72,22 @@ export default class Player {
                 this.setAnim('run', 1);
             else if (walk)
                 this.setAnim('walk', 0.5);
+            else
+                this.setAnim('idle', 0.5);
+        } */
+
+        let shot: boolean = false;
+        let fire: boolean = false
+        if (this.inputCommand.IsMatch('shot', 1))
+            shot = true;
+        if (this.inputCommand.IsMatch('firing', 1))
+            fire = true;
+        
+        if (Object.keys(this.actions).length > 0){
+            if(shot)
+                this.setAnim('shot', 0.5);
+            else if(fire)
+                this.setAnim('firing', 0.5);
             else
                 this.setAnim('idle', 0.5);
         }

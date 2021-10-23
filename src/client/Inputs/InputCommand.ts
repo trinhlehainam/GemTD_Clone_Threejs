@@ -11,12 +11,12 @@ type InputInfo = {
 export default class InputCommand {
     private constroller: IInput
     private patternMap: Map<string, INPUT_ID[]>
-    private m_inputs: Ring<InputInfo>
+    private inputs: Ring<InputInfo>
 
     constructor(controller: IInput){
         this.constroller = controller;
         this.patternMap = new Map();
-        this.m_inputs = new Ring<InputInfo>(10);
+        this.inputs = new Ring<InputInfo>(10);
     }
 
     AddPattern(patternKey: string, inputIDs: INPUT_ID[]): void {
@@ -33,10 +33,13 @@ export default class InputCommand {
         const kMatchNum = pattern.length;
         const currentTimeStamp = Date.now();
         let matchCount = 0;
-        for (let input of this.m_inputs) {
-            if (!input) return false;
+        for (let input of this.inputs) {
+            if (!input){
+                matchCount = 0;
+                continue;
+            }
 
-            const elapsedTime_s = currentTimeStamp - input.timeStamp;
+            const elapsedTime_s = (currentTimeStamp - input.timeStamp) / 1000;
 
             if (timeOut_s)
                 if (elapsedTime_s > timeOut_s)
@@ -44,7 +47,7 @@ export default class InputCommand {
             
             // NOTE:If pattern match increase matchCount by 1 else reset to 0
             matchCount = input.id === pattern[matchCount] ? matchCount + 1 : 0;
-            if (matchCount > kMatchNum)
+            if (matchCount >= kMatchNum)
                 return true;
         }
 
@@ -55,7 +58,17 @@ export default class InputCommand {
         const justPressedKeys = this.constroller.GetJustPressedKeys();
 
         for (const key of justPressedKeys)
-            this.m_inputs.insert({id: key, timeStamp: Date.now()});
+            this.inputs.insert({id: key, timeStamp: Date.now()});
+        
+        let inputCommand: string = 'Input Command : ';
+        for (const input of this.inputs.getData())
+            if(input) inputCommand += (input.id + ' ' + input.timeStamp/1000 + ', ');
+        console.log(inputCommand);
+
+        let pattern: string = 'Input pattern : \n';
+        for (const data of this.patternMap)
+            if(data) pattern += data[0]+ ': ' + data[1] + '\n';
+        console.log(pattern);
     }
 
 }
