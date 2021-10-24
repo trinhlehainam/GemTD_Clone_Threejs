@@ -1,21 +1,19 @@
-import {Camera, PerspectiveCamera, Scene} from 'three'
+import {Camera, Scene} from 'three'
 
 import SceneMng from '../Systems/SceneMng'
 
 export default abstract class IScene {
-    protected camera: PerspectiveCamera
+    protected camera: Camera
     protected scene: Scene
     protected sceneMng: SceneMng
 
     private isEnable: boolean
     constructor(sceneMng: SceneMng){
         this.sceneMng = sceneMng;
+
         this.scene = new Scene();
 
-        this.camera = new PerspectiveCamera(
-            45, window.innerWidth / window.innerHeight, 0.1, 500);
-        this.camera.position.set(0,10,5);
-        this.camera.lookAt(this.scene.position);
+        this.camera = new Camera();
 
         this.isEnable = true; 
     }
