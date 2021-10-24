@@ -3,9 +3,11 @@ import IComponent from '../Components/IComponent'
 export default class Entity{
     private components: {[key: string]: IComponent} = {}
     private isActive: boolean = false
-    constructor(
-        private tag: string
-    ) {}
+    private tag: string
+
+    constructor(tag: string) {
+        this.tag = tag;
+    }
 
     SetActive(flag: boolean): void { this.isActive = flag; }
     SetTag(tag: string): void { this.tag = tag; }

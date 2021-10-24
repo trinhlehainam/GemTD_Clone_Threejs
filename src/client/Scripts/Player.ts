@@ -154,7 +154,7 @@ export default class Player {
             url,
             gltf => {
                 this.model = gltf.scene;
-                this.model.scale.addScalar(5);
+                this.model.scale.addScalar(2);
                 this.mixer = new AnimationMixer(this.model);
                 gltf.animations.forEach(anim => {
                     this.actions[anim.name.toLowerCase()] = this.mixer!.clipAction(anim);

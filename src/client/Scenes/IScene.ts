@@ -2,6 +2,7 @@ import {Camera, Scene} from 'three'
 
 import SceneMng from '../Systems/SceneMng'
 
+// TODO: Refactoring the order of class destructor
 export default abstract class IScene {
     protected camera: Camera
     protected scene: Scene
