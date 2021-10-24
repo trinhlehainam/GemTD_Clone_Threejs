@@ -1,6 +1,6 @@
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
-import {Scene, Group, Mesh, AnimationMixer, AnimationAction} from 'three'
+import {Scene, Group, Mesh, AnimationMixer, AnimationAction, Vector2} from 'three'
 import {GUI} from 'dat.gui'
 
 import Entity from '../GameObjects/Entity'
@@ -8,6 +8,8 @@ import Transform from '../Components/Transform'
 import KeyboardInput from '../Inputs/KeyboardInput'
 import InputCommand from '../Inputs/InputCommand'
 import INPUT_ID from '../Inputs/InputID'
+
+import Stage from './Stage'
 
 export default class Player {
     private enitty: Entity
@@ -18,13 +20,19 @@ export default class Player {
     private currentActionKey: string
     private constroller: KeyboardInput
     private inputCommand: InputCommand
+
+    private stage: Stage
+    private mapPos: Vector2
     
     // Debug
     private gui: GUI
     private options: any
 
-    constructor(scene: Scene){
+    constructor(scene: Scene, stage: Stage){
         this.scene = scene;
+        this.stage = stage;
+        this.mapPos = new Vector2(); 
+
         this.enitty = new Entity('player');
         this.enitty.AddComponent(Transform);
         const url: string = './assets/factory/eve.glb';
@@ -57,29 +65,26 @@ export default class Player {
     }
 
     update(dt_s: number): void {
+        if (!this.model) return;
+
         const transform = this.enitty.GetComponent(Transform);
         if (transform === undefined) return;
-        /* let walk: boolean = false;
-        let run: boolean = false;
-        
-        let speed = 0.0;
-        if (this.constroller.IsPressed(INPUT_ID.UP)) {
-            walk = true;
-            speed = 1.0;
-            if (this.constroller.IsPressed(INPUT_ID.SHIFT))
-                run = true; 
+        if (this.constroller.IsJustReleased(INPUT_ID.LEFT)){
+            this.mapPos.x += -1;
         }
-
-        if (this.constroller.IsPressed(INPUT_ID.SPACE))
-            this.setAnim('firing', 0.2);
-        else if (Object.keys(this.actions).length > 0){
-            if (run)
-                this.setAnim('run', 1);
-            else if (walk)
-                this.setAnim('walk', 0.5);
-            else
-                this.setAnim('idle', 0.5);
-        } */
+        if (this.constroller.IsJustReleased(INPUT_ID.RIGHT)){
+            this.mapPos.x += 1;
+        }
+        if (this.constroller.IsJustReleased(INPUT_ID.UP)){
+            this.mapPos.y += -1;
+        }
+        if (this.constroller.IsJustReleased(INPUT_ID.DOWN)){
+            this.mapPos.y += 1;
+        }
+        let cursor: boolean = false;
+        if (this.constroller.IsPressed(INPUT_ID.SHIFT)){
+            cursor = true;
+        }
 
         let shot: boolean = false;
         let fire: boolean = false
@@ -97,8 +102,17 @@ export default class Player {
                 this.setAnim('idle', 0.5);
         }
 
-        if (this.model) this.model.position.copy(transform.position);
+        this.mapPos.clamp(new Vector2(), new Vector2(37, 37));
+        transform.position = this.stage.TileToMapPos(this.mapPos);
+        this.stage.SetCursorPos(transform.position);
+        this.stage.SetCursorVisible(cursor);
+
+        this.model.position.copy(transform.position);
         this.mixer?.update(dt_s);
+
+        console.log(
+            'Player pos: ' + `${transform.position.x}, ${transform.position.y}, ${transform.position.z}`);
+        console.log('Player map tile pos: ' + `${this.mapPos.x}, ${this.mapPos.y}`);
 
         this.updateGUI();
     }
@@ -155,6 +169,9 @@ export default class Player {
             gltf => {
                 this.model = gltf.scene;
                 this.model.scale.addScalar(2);
+                const transform = this.enitty.GetComponent(Transform) as Transform;
+                transform.position.copy(this.stage.VecToMapPos(transform.position));
+                this.mapPos = this.stage.VecToTilePos(transform.position);
                 this.mixer = new AnimationMixer(this.model);
                 gltf.animations.forEach(anim => {
                     this.actions[anim.name.toLowerCase()] = this.mixer!.clipAction(anim);
