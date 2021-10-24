@@ -13,8 +13,8 @@ export default abstract class IScene {
         this.scene = new Scene();
 
         this.camera = new PerspectiveCamera(
-            45, window.innerWidth / window.innerHeight, 0.1, 100);
-        this.camera.position.set(0,2,2);
+            45, window.innerWidth / window.innerHeight, 0.1, 500);
+        this.camera.position.set(0,10,5);
         this.camera.lookAt(this.scene.position);
 
         this.isEnable = true; 

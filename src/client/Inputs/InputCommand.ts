@@ -5,7 +5,7 @@ import INPUT_ID from './InputID'
 
 type InputInfo = {
     id: INPUT_ID,
-    timeStamp: number
+    timeStamp: number // milliseconds
 }
 
 export default class InputCommand {
@@ -38,7 +38,8 @@ export default class InputCommand {
                 matchCount = 0;
                 continue;
             }
-
+            
+            // Convert milliseconds to seconds
             const elapsedTime_s = (currentTimeStamp - input.timeStamp) / 1000;
 
             if (timeOut_s)
@@ -59,16 +60,6 @@ export default class InputCommand {
 
         for (const key of justPressedKeys)
             this.inputs.insert({id: key, timeStamp: Date.now()});
-        
-        let inputCommand: string = 'Input Command : ';
-        for (const input of this.inputs.getData())
-            if(input) inputCommand += (input.id + ' ' + input.timeStamp/1000 + ', ');
-        console.log(inputCommand);
-
-        let pattern: string = 'Input pattern : \n';
-        for (const data of this.patternMap)
-            if(data) pattern += data[0]+ ': ' + data[1] + '\n';
-        console.log(pattern);
     }
 
 }
