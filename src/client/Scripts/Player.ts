@@ -22,6 +22,7 @@ export default class Player {
     // Debug
     private gui: GUI
     private options: any
+
     constructor(scene: Scene){
         this.scene = scene;
         this.enitty = new Entity('player');
@@ -44,6 +45,10 @@ export default class Player {
 
         this.gui = new GUI();
         this.options = {};
+    }
+
+    destroy(): void {
+        this.gui.destroy();
     }
     
     processInput(): void {

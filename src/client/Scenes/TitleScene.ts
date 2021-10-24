@@ -5,6 +5,11 @@ import GameScene from './GameScene'
 export default class TitleScene extends IScene {
     constructor(sceneMng: SceneMng) {
         super(sceneMng);
+        this.sceneMng.GetRenderer().setClearColor(0x000000);
+    }
+
+    Destroy(): void {
+
     }
 
     ProcessInput(): void {
@@ -24,6 +29,7 @@ export default class TitleScene extends IScene {
     }
 
     ChangeScene(scene: IScene): IScene {
+        scene.Destroy();
         console.log('TitleScene to GameScene');
         scene = new GameScene(this.sceneMng);
         scene.Init();

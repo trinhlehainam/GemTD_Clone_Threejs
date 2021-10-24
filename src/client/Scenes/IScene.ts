@@ -23,6 +23,7 @@ export default abstract class IScene {
     abstract Update(deltaTime_s: number): void;
     abstract Render(): void;
     abstract ChangeScene(scene: IScene): IScene;
+    abstract Destroy(): void;
 
     SetEnable(flag: boolean): void { this.isEnable = flag; }
     GetThreeScene(): Scene { return this.scene; }
