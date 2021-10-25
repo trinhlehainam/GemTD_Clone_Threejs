@@ -117,11 +117,27 @@ export default class Player {
                 this.setAnim('idle', 0.5);
         } */
 
-        const speed: number = 2.0;
-        let dir = this.dest.clone().sub(transform.position);
-        let move = dir.clone().multiplyScalar(speed).multiplyScalar(dt_s);
-        transform.position.add(move);
-        transform.position.setY(0);
+        const speed: number = 10.0 * dt_s;
+        const diff = this.dest.clone().sub(transform.position);
+        const dir = diff.clone().normalize();
+        const overlap = diff.clone();
+        // transform.position.z += speed;
+        console.log(speed);
+        transform.position.add(dir.multiplyScalar(speed));
+        
+        let distance = overlap.lengthSq();
+        console.log('Distance : ' + distance);
+        console.log('Diff : ' + `${diff.x} ${diff.y} ${diff.z}`);
+        const bias:number = 0.01;
+        if (distance <= bias){
+            transform.position.copy(this.dest)
+            this.setAnim('idle', 0.5);
+        }
+        else
+            this.setAnim('run', 0.5);
+
+        console.log('Player pos : ' + `${transform.position.x} ${transform.position.y} ${transform.position.z}`);
+        console.log('Dest pos : ' + `${this.dest.x} ${this.dest.y} ${this.dest.z}`);
         // console.log(move);
         
 
@@ -257,7 +273,7 @@ export default class Player {
            const normal = new Vector3();
            normal.copy((intersects[0].face as THREE.Face).normal);
            normal.transformDirection(intersects[0].object.matrixWorld).normalize();
-           this.dest = intersect.point.clone().add(normal);
+           this.dest = intersect.point.clone().add(normal).setY(0);
            console.log(this.dest);
        }
     }
