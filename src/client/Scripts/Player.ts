@@ -41,7 +41,6 @@ export default class Player {
         this.mapPos = new Vector2(); 
 
         this.enitty = new Entity('player');
-        this.enitty.AddComponent(Transform);
         const url: string = './assets/factory/eve.glb';
         this.loadGLTF(url);
         this.actions = {};
@@ -126,12 +125,11 @@ export default class Player {
         
         const degree_to_radian = (deg:number) => (deg * Math.PI)/180.0;
         const qua = new Quaternion();
-        let forward = new Vector3();
-        this.model.getWorldDirection(forward);
+        let forward = transform.forward;
         console.log(forward);
         qua.setFromUnitVectors(forward, dir);
         console.log(qua);
-        this.model.quaternion.multiply(qua);
+        transform.rotation.multiply(qua);
 
         let distance = diff.lengthSq();
         console.log('Distance : ' + distance);
@@ -157,8 +155,8 @@ export default class Player {
         this.stage.SetCursorPos(transform.position);
         this.stage.SetCursorVisible(cursor); */
 
-        this.model.position.copy(transform.position);
         this.mixer?.update(dt_s);
+        this.enitty.Update(dt_s);
 
         /* console.log(
             'Player pos: ' + `${transform.position.x}, ${transform.position.y}, ${transform.position.z}`);
@@ -218,8 +216,9 @@ export default class Player {
             url,
             gltf => {
                 this.model = gltf.scene;
-                this.model.scale.addScalar(2);
                 const transform = this.enitty.GetComponent(Transform) as Transform;
+                transform.scale.addScalar(2);
+                transform.SetThreeObject(this.model);
                 transform.position.copy(this.stage.VecToMapPos(transform.position));
                 this.mapPos = this.stage.VecToTilePos(transform.position);
                 this.mixer = new AnimationMixer(this.model);

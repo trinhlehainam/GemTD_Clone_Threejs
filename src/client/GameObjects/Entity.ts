@@ -1,12 +1,16 @@
 import IComponent from '../Components/IComponent'
+import Transform from '../Components/Transform'
 
 export default class Entity{
+    public readonly transform: Transform;
+
     private components: {[key: string]: IComponent} = {}
     private isActive: boolean = false
     private tag: string
 
     constructor(tag: string) {
         this.tag = tag;
+        this.transform = this.AddComponent(Transform) as Transform;
     }
 
     SetActive(flag: boolean): void { this.isActive = flag; }
