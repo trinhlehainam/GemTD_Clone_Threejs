@@ -120,12 +120,20 @@ export default class Player {
         const speed: number = 10.0 * dt_s;
         const diff = this.dest.clone().sub(transform.position);
         const dir = diff.clone().normalize();
-        const overlap = diff.clone();
         // transform.position.z += speed;
         console.log(speed);
         transform.position.add(dir.multiplyScalar(speed));
         
-        let distance = overlap.lengthSq();
+        const degree_to_radian = (deg:number) => (deg * Math.PI)/180.0;
+        const qua = new Quaternion();
+        let forward = new Vector3();
+        this.model.getWorldDirection(forward);
+        console.log(forward);
+        qua.setFromUnitVectors(forward, dir);
+        console.log(qua);
+        this.model.quaternion.multiply(qua);
+
+        let distance = diff.lengthSq();
         console.log('Distance : ' + distance);
         console.log('Diff : ' + `${diff.x} ${diff.y} ${diff.z}`);
         const bias:number = 0.01;
