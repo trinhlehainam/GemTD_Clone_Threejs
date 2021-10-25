@@ -1,14 +1,16 @@
 import IComponent from './IComponent'
-import {Vector3} from 'three'
+import {Vector3, Quaternion} from 'three'
 
 export default class Transform extends IComponent {
-    public position:Vector3
     public scale:Vector3
+    public position:Vector3
+    public quternion:Quaternion
 
     constructor() { 
         super(); 
-        this.position = new Vector3();
         this.scale = new Vector3(1.0 ,1.0, 1.0);
+        this.quternion = new Quaternion();
+        this.position = new Vector3();
     }
 
     Init(): void {

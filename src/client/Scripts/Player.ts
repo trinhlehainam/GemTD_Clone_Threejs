@@ -1,6 +1,6 @@
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
-import {Scene, Group, Mesh, AnimationMixer, AnimationAction, Vector2} from 'three'
+import {Scene, Group, Mesh, AnimationMixer, AnimationAction, Vector3, Vector2, Quaternion, Raycaster, Camera} from 'three'
 import {GUI} from 'dat.gui'
 
 import Entity from '../GameObjects/Entity'
@@ -28,7 +28,14 @@ export default class Player {
     private gui: GUI
     private options: any
 
-    constructor(scene: Scene, stage: Stage){
+    // Test Rotation
+    private quaternion: Quaternion
+    private pointer: Vector2
+    private raycaster: Raycaster
+    private camera: Camera
+    private dest: Vector3
+
+    constructor(scene: Scene, stage: Stage, camera: Camera){
         this.scene = scene;
         this.stage = stage;
         this.mapPos = new Vector2(); 
@@ -53,6 +60,14 @@ export default class Player {
 
         this.gui = new GUI();
         this.options = {};
+
+        this.pointer = new Vector2(); 
+        this.raycaster = new Raycaster();
+        this.quaternion = new Quaternion();
+        this.camera = camera;
+        this.dest = new Vector3();
+
+        document.addEventListener('pointerdown', this.onPointerDown.bind(this));
     }
 
     destroy(): void {
@@ -69,7 +84,7 @@ export default class Player {
 
         const transform = this.enitty.GetComponent(Transform);
         if (transform === undefined) return;
-        if (this.constroller.IsJustReleased(INPUT_ID.LEFT)){
+        /* if (this.constroller.IsJustReleased(INPUT_ID.LEFT)){
             this.mapPos.x += -1;
         }
         if (this.constroller.IsJustReleased(INPUT_ID.RIGHT)){
@@ -100,19 +115,30 @@ export default class Player {
                 this.setAnim('firing', 0.5);
             else
                 this.setAnim('idle', 0.5);
+        } */
+
+        const speed: number = 2.0;
+        let dir = this.dest.clone().sub(transform.position);
+        let move = dir.clone().multiplyScalar(speed).multiplyScalar(dt_s);
+        transform.position.add(move);
+        transform.position.setY(0);
+        // console.log(move);
+        
+
+        if (Object.keys(this.actions).length > 0){
         }
 
-        this.mapPos.clamp(new Vector2(), new Vector2(37, 37));
+        /* this.mapPos.clamp(new Vector2(), new Vector2(37, 37));
         transform.position = this.stage.TileToMapPos(this.mapPos);
         this.stage.SetCursorPos(transform.position);
-        this.stage.SetCursorVisible(cursor);
+        this.stage.SetCursorVisible(cursor); */
 
         this.model.position.copy(transform.position);
         this.mixer?.update(dt_s);
 
-        console.log(
+        /* console.log(
             'Player pos: ' + `${transform.position.x}, ${transform.position.y}, ${transform.position.z}`);
-        console.log('Player map tile pos: ' + `${this.mapPos.x}, ${this.mapPos.y}`);
+        console.log('Player map tile pos: ' + `${this.mapPos.x}, ${this.mapPos.y}`); */
 
         this.updateGUI();
     }
@@ -214,5 +240,25 @@ export default class Player {
     }
 
     waitActionFinished(){
+    }
+
+    private onPointerDown(event: PointerEvent): void {
+       this.pointer.set(
+           +(event.clientX/window.innerWidth)*2-1,
+           -(event.clientY/window.innerHeight)*2+1
+       );
+
+       this.raycaster.setFromCamera( this.pointer, this.camera );
+
+       const intersects = this.raycaster.intersectObject(this.stage.GetGround(), false);
+
+       if (intersects.length > 0) {
+           const intersect = intersects[0];
+           const normal = new Vector3();
+           normal.copy((intersects[0].face as THREE.Face).normal);
+           normal.transformDirection(intersects[0].object.matrixWorld).normalize();
+           this.dest = intersect.point.clone().add(normal);
+           console.log(this.dest);
+       }
     }
 }

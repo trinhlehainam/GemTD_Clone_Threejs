@@ -32,7 +32,7 @@ export default class GameScene extends IScene {
         document.body.appendChild(this.stats.domElement);
 
         this.stage = new Stage(this.scene, this.camera);
-        this.player = new Player(this.scene, this.stage);
+        this.player = new Player(this.scene, this.stage, this.camera);
     }
 
     Destroy(): void {

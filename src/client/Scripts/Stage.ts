@@ -13,7 +13,6 @@ export default class Stage {
     /* private pointer: THREE.Vector2
     private raycaster: THREE.Raycaster */
     private cursor: THREE.Mesh
-    private arrow: THREE.ArrowHelper
     private camera: THREE.Camera
 
     constructor(scene: THREE.Scene, camera: THREE.Camera) {
@@ -63,10 +62,6 @@ export default class Stage {
             
         /* this.pointer = new THREE.Vector2();
         this.raycaster = new THREE.Raycaster(); */
-
-        this.arrow = new THREE.ArrowHelper();
-        this.arrow.setLength(this.tileSize.x * 1.5);
-        this.scene.add(this.arrow);
 
         // document.addEventListener('pointermove', this.onPointerMove.bind(this));
     }
@@ -123,6 +118,10 @@ export default class Stage {
     Render(): void {
 
     }
+
+    // NOTE: Only for debug
+    // TODO: Delete later
+    GetGround(): THREE.Mesh { return this.ground; }
 
     /* private onPointerMove(event: PointerEvent): void {
        this.pointer.set(
