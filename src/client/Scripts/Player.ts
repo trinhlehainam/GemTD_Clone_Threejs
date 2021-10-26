@@ -1,6 +1,6 @@
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
-import {Scene, Group, Mesh, AnimationMixer, AnimationAction, Vector3, Vector2, Quaternion, Raycaster, Camera} from 'three'
+import * as THREE from 'three'
 import {GUI} from 'dat.gui'
 
 import Entity from '../GameObjects/Entity'
@@ -13,32 +13,32 @@ import Stage from './Stage'
 
 export default class Player {
     private enitty: Entity
-    private model?: Group
-    private mixer?: AnimationMixer
-    private scene: Scene;
-    private actions: {[key: string]: AnimationAction}
+    private model?: THREE.Group
+    private mixer?: THREE.AnimationMixer
+    private scene: THREE.Scene;
+    private actions: {[key: string]: THREE.AnimationAction}
     private currentActionKey: string
     private constroller: KeyboardInput
     private inputCommand: InputCommand
 
     private stage: Stage
-    private mapPos: Vector2
+    private mapPos: THREE.Vector2
     
     // Debug
     private gui: GUI
     private options: any
 
     // Test Rotation
-    private quaternion: Quaternion
-    private pointer: Vector2
-    private raycaster: Raycaster
-    private camera: Camera
-    private dest: Vector3
+    private quaternion: THREE.Quaternion
+    private pointer: THREE.Vector2
+    private raycaster: THREE.Raycaster
+    private camera: THREE.Camera
+    private dest: THREE.Vector3
 
-    constructor(scene: Scene, stage: Stage, camera: Camera){
+    constructor(scene: THREE.Scene, stage: Stage, camera: THREE.Camera){
         this.scene = scene;
         this.stage = stage;
-        this.mapPos = new Vector2(); 
+        this.mapPos = new THREE.Vector2(); 
 
         this.enitty = new Entity('player');
         const url: string = './assets/factory/eve.glb';
@@ -60,11 +60,11 @@ export default class Player {
         this.gui = new GUI();
         this.options = {};
 
-        this.pointer = new Vector2(); 
-        this.raycaster = new Raycaster();
-        this.quaternion = new Quaternion();
+        this.pointer = new THREE.Vector2(); 
+        this.raycaster = new THREE.Raycaster();
+        this.quaternion = new THREE.Quaternion();
         this.camera = camera;
-        this.dest = new Vector3();
+        this.dest = new THREE.Vector3();
 
         document.addEventListener('pointerdown', this.onPointerDown.bind(this));
     }
@@ -123,8 +123,7 @@ export default class Player {
         console.log(speed);
         transform.position.add(dir.multiplyScalar(speed));
         
-        const degree_to_radian = (deg:number) => (deg * Math.PI)/180.0;
-        const qua = new Quaternion();
+        const qua = new THREE.Quaternion();
         let forward = transform.forward;
         console.log(forward);
         qua.setFromUnitVectors(forward, dir);
@@ -221,14 +220,14 @@ export default class Player {
                 transform.SetThreeObject(this.model);
                 transform.position.copy(this.stage.VecToMapPos(transform.position));
                 this.mapPos = this.stage.VecToTilePos(transform.position);
-                this.mixer = new AnimationMixer(this.model);
+                this.mixer = new THREE.AnimationMixer(this.model);
                 gltf.animations.forEach(anim => {
                     this.actions[anim.name.toLowerCase()] = this.mixer!.clipAction(anim);
                 })
                 this.currentActionKey = 'idle';
                 this.actions[this.currentActionKey].play();
                 this.model.traverse(node => {
-                    if(node instanceof Mesh){
+                    if(node instanceof THREE.Mesh){
                         // node.receiveShadow = true;
                         node.castShadow = true;
                     }
@@ -256,8 +255,8 @@ export default class Player {
         const nextAcion = this.actions[animKey];
 
         nextAcion.reset();
-        nextAcion.setEffectiveTimeScale(1);
-        nextAcion.setEffectiveWeight(1);
+        /* nextAcion.setEffectiveTimeScale(1);
+        nextAcion.setEffectiveWeight(1); */
         currentAction.crossFadeTo(nextAcion, duration, true);
         nextAcion.play();
     }
@@ -277,7 +276,7 @@ export default class Player {
 
        if (intersects.length > 0) {
            const intersect = intersects[0];
-           const normal = new Vector3();
+           const normal = new THREE.Vector3();
            normal.copy((intersects[0].face as THREE.Face).normal);
            normal.transformDirection(intersects[0].object.matrixWorld).normalize();
            this.dest = intersect.point.clone().add(normal).setY(0);

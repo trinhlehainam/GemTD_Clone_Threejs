@@ -8,6 +8,6 @@ export default abstract class IComponent {
     GetOwner(): Entity | undefined { return this.owner; }
 
     abstract Init(): void;
-    abstract Update(dt_s:number): void;
+    abstract Update(deltaTime_s:number): void;
     abstract Render(): void;
 }

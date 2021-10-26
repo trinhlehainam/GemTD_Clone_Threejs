@@ -1,5 +1,6 @@
-import {WebGLRenderer, Color, Clock, PerspectiveCamera, sRGBEncoding} from 'three'
+import {LoadingManager, WebGLRenderer, Color, Clock, PerspectiveCamera, sRGBEncoding} from 'three'
 
+import TextureMng from './TextureMng'
 import IScene from '../Scenes/IScene'
 import TitleScene from '../Scenes/TitleScene'
 import KeyboardInput from '../Inputs/KeyboardInput'
@@ -8,6 +9,7 @@ import INPUT_ID from '../Inputs/InputID'
 export default class SceneMng {
     private renderer: WebGLRenderer
     private scene: IScene
+    private loadMng: LoadingManager
     private clock: Clock
     private controller: KeyboardInput
     
@@ -19,6 +21,9 @@ export default class SceneMng {
         this.renderer.outputEncoding = sRGBEncoding;
         this.renderer.shadowMap.enabled = true;
         document.body.appendChild(this.renderer.domElement);
+
+        this.loadMng = new LoadingManager();
+        TextureMng.Create(this.loadMng);
 
         this.clock = new Clock();
 

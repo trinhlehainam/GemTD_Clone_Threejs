@@ -1,5 +1,4 @@
 import IInput from './IInput'
-import INPUT_ID from './InputID'
 
 export default class KeyboardInput extends IInput {
     private keyboardKeys: Array<boolean>
