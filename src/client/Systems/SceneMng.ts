@@ -12,6 +12,7 @@ export default class SceneMng {
     private loadMng: LoadingManager
     private clock: Clock
     private controller: KeyboardInput
+    private loading: HTMLElement
     
     constructor() {
         this.renderer = new WebGLRenderer({antialias: true, alpha: true});
@@ -31,6 +32,14 @@ export default class SceneMng {
         this.scene.Init();
 
         this.controller = new KeyboardInput([37,39,40,38,32]);
+        this.loading = document.querySelector('#loading') as HTMLElement;
+        console.log(this.loading);
+        this.loadMng.onLoad = this.onLoad.bind(this);
+
+    }
+
+    onLoad(): void {
+        this.loading.style.display = 'none'; 
     }
 
     async Init(): Promise<boolean> {
@@ -39,12 +48,12 @@ export default class SceneMng {
         return true;
     }
 
-    Loop(): void {
+    async Loop(): Promise<void> {
         const deltaTime_s = this.clock.getDelta();
         this.controller.Update();
 
         if (this.controller.IsJustPressed(INPUT_ID.SPACE)) {
-           this.scene = this.scene.ChangeScene(this.scene); 
+            this.scene = this.scene.ChangeScene(this.scene); 
         }
 
         this.scene.Update(deltaTime_s); 
