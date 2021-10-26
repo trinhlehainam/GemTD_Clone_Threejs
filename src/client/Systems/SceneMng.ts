@@ -33,7 +33,7 @@ export default class SceneMng {
         this.controller = new KeyboardInput([37,39,40,38,32]);
     }
 
-    Init(): boolean {
+    async Init(): Promise<boolean> {
         this.renderer.setAnimationLoop(this.Loop.bind(this));
         window.addEventListener('resize', this.onResizeWindow.bind(this));
         return true;

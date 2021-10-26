@@ -7,6 +7,10 @@ export default class App {
         this.sceneMng = new SceneMng();
     }
 
+    async init(): Promise<void> {
+         
+    }
+
     run(): void{
         this.sceneMng.Init();
     }

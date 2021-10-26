@@ -1,12 +1,12 @@
 {
     "compilerOptions": {
         "target": "ES6",
-      "moduleResolution": "node",
-      "baseUrl": ".",
-      "outDir": "../../dist/client",
-      "strict": true,
-      "paths": {
-      }
+        "moduleResolution": "node",
+        "baseUrl": ".",
+        "outDir": "../../dist/client",
+        "strict": true,
+        "paths": {
+        }
     },
     "include": [
         "**/*.ts"

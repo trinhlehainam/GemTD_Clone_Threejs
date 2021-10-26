@@ -1,4 +1,9 @@
 import App from './app'
 
-const app = new App();
-app.run();
+async function main(){
+    const app = new App();
+    await app.init();
+    app.run();
+}
+
+main().catch(err => console.log(err));
