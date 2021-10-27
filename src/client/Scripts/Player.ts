@@ -42,7 +42,6 @@ export default class Player {
 
         this.enitty = new Entity('player');
         const url: string = './assets/factory/eve.glb';
-        this.loadGLTF(url);
         this.actions = {};
         this.currentActionKey = "";
 
@@ -195,45 +194,6 @@ export default class Player {
         this.options.walkWeight = walk.getEffectiveWeight();
         this.options.runWeight = run.getEffectiveWeight();
         this.options.animKey = this.currentActionKey;
-    }
-
-    private loadGLTF(url: string): void{
-        const loader = new GLTFLoader(); 
-        const draco = new DRACOLoader();
-        draco.setDecoderPath('./js/libs/draco/');
-        loader.setDRACOLoader(draco);
-
-        loader.load(
-            url,
-            gltf => {
-                this.model = gltf.scene;
-                const transform = this.enitty.GetComponent(Transform) as Transform;
-                transform.scale.addScalar(2);
-                transform.SetThreeObject(this.model);
-                transform.position.copy(this.stage.VecToMapPos(transform.position));
-                this.mapPos = this.stage.VecToTilePos(transform.position);
-                this.mixer = new THREE.AnimationMixer(this.model);
-                gltf.animations.forEach(anim => {
-                    this.actions[anim.name.toLowerCase()] = this.mixer!.clipAction(anim);
-                })
-                this.currentActionKey = 'idle';
-                this.actions[this.currentActionKey].play();
-                this.model.traverse(node => {
-                    if(node instanceof THREE.Mesh){
-                        // node.receiveShadow = true;
-                        node.castShadow = true;
-                    }
-                })
-                this.scene.add(this.model);
-                this.createGUI();
-            },
-            xhr => {
-
-            },
-            err => {
-                console.error(err);
-            }
-        )
     }
 
     setAnim(animKey: string, duration: number): void {

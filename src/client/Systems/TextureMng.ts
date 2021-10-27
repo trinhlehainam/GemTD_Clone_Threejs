@@ -20,7 +20,7 @@ export default class TextureMng {
             this.instance = undefined;
     }
 
-    static AddTexture(url: string, key: string): boolean {
+    static Load(url: string, key: string): boolean {
         if (!this.IsCreated()) return false;
 
         const instance = this.instance!;

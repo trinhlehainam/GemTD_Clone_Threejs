@@ -1,6 +1,8 @@
 import {LoadingManager, WebGLRenderer, Color, Clock, PerspectiveCamera, sRGBEncoding} from 'three'
 
 import TextureMng from './TextureMng'
+import ModelDataMng from './ModelDataMng'
+
 import IScene from '../Scenes/IScene'
 import TitleScene from '../Scenes/TitleScene'
 import KeyboardInput from '../Inputs/KeyboardInput'
@@ -25,6 +27,7 @@ export default class SceneMng {
 
         this.loadMng = new LoadingManager();
         TextureMng.Create(this.loadMng);
+        ModelDataMng.Create(this.loadMng);
 
         this.clock = new Clock();
 
@@ -48,7 +51,7 @@ export default class SceneMng {
         return true;
     }
 
-    async Loop(): Promise<void> {
+    Loop(): void {
         const deltaTime_s = this.clock.getDelta();
         this.controller.Update();
 
