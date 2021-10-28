@@ -30,7 +30,6 @@ export default class Player {
     private options: any
 
     // Test Rotation
-    private quaternion: THREE.Quaternion
     private pointer: THREE.Vector2
     private raycaster: THREE.Raycaster
     private camera: THREE.Camera
@@ -60,11 +59,9 @@ export default class Player {
 
         this.pointer = new THREE.Vector2(); 
         this.raycaster = new THREE.Raycaster();
-        this.quaternion = new THREE.Quaternion();
         this.camera = camera;
         this.dest = new THREE.Vector3();
 
-        console.log(ModelDataMng.Instance());
         this.model = ModelDataMng.GetObject3D('eve') as THREE.Group;
         this.model.traverse(node => {
             if (node instanceof THREE.Mesh)
@@ -73,19 +70,17 @@ export default class Player {
         this.mixer = new THREE.AnimationMixer(this.model);
         const animations = ModelDataMng.GetAnimationClips('eve') as THREE.AnimationClip[];
         this.currentActionKey = "idle";
-        console.log(animations);
         const animKeys = Object.keys(animations);
         for (let i = 0; i < animKeys.length; ++i){
             this.actions[animations[i].name.toLowerCase()] = this.mixer.clipAction(animations[i]);
         }
-        console.log(this.actions);
+        this.actions[this.currentActionKey].play();
         const transform = this.enitty.transform;
         transform.SetThreeObject(this.model);
         transform.scale.multiplyScalar(3);
 
         this.scene.add(this.model);
-
-        document.addEventListener('pointerdown', this.onPointerDown.bind(this));
+        this.createGUI();
     }
 
     destroy(): void {
@@ -234,24 +229,5 @@ export default class Player {
     }
 
     waitActionFinished(){
-    }
-
-    private onPointerDown(event: PointerEvent): void {
-       this.pointer.set(
-           +(event.clientX/window.innerWidth)*2-1,
-           -(event.clientY/window.innerHeight)*2+1
-       );
-
-       this.raycaster.setFromCamera( this.pointer, this.camera );
-
-       const intersects = this.raycaster.intersectObject(this.stage.GetGround(), false);
-
-       if (intersects.length > 0) {
-           const intersect = intersects[0];
-           const normal = new THREE.Vector3();
-           normal.copy((intersects[0].face as THREE.Face).normal);
-           normal.transformDirection(intersects[0].object.matrixWorld).normalize();
-           this.dest = intersect.point.clone().add(normal).setY(0);
-       }
     }
 }

@@ -30,8 +30,8 @@ export default class SceneMng {
     async Init(): Promise<boolean> {
         ModelDataMng.LoadAsync('./assets/factory/eve.glb', 'eve');
         ModelDataMng.LoadAsync('./assets/factory/eve2.glb', 'eve2');
-        ModelDataMng.LoadAsync('./assets/factory/factory1.glb', 'factory');
-        ModelDataMng.LoadAsync('./assets/factory/factory2.glb', 'factory2');
+        ModelDataMng.LoadAsync('./assets/factory/swat-guy.glb', 'swat-guy');
+        ModelDataMng.LoadAsync('./assets/factory/swat-guy2.glb', 'swat-guy2');
 
         await this.scene.Init();
         LoadMng.EnableLoadingScene(false);

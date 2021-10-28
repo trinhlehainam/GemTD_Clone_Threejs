@@ -10,9 +10,11 @@ import TitleScene from './TitleScene'
 
 import Stage  from '../Scripts/Stage'
 import Player from '../Scripts/Player'
+import Enemy from '../Scripts/Enemy'
 
 export default class GameScene extends IScene {
     private player?: Player
+    private enemy?: Enemy
     private stage: Stage
     
     // Debug
@@ -50,8 +52,9 @@ export default class GameScene extends IScene {
         return new Promise(
             async (resolve, reject) => {
                 // Wait until Player's resources are loaded before create Player
-                await ModelDataMng.GetAsync('eve', 'factory');
+                await ModelDataMng.GetAsync('eve', 'swat-guy');
                 this.player = new Player(this.scene, this.stage, this.camera);
+                this.enemy = new Enemy(this.scene, this.stage, this.camera);
                 //
                 resolve(true);
                 reject('INIT ERROR: Fail to initialize GameScene !!!');
@@ -61,13 +64,16 @@ export default class GameScene extends IScene {
 
     Update(deltaTime_s: number): void {
         this.player?.processInput();
+        this.enemy?.processInput();
 
         this.player?.update(deltaTime_s);
+        this.enemy?.update(deltaTime_s);
     }
 
     Render(): void {
         this.stats.update();
         this.player?.render();
+        this.enemy?.render();
     }
 
     ChangeScene(scene: IScene): Promise<IScene> {
