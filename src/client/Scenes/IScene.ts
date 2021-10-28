@@ -10,6 +10,7 @@ export default abstract class IScene {
 
     private isEnable: boolean
     private isChange: boolean
+
     constructor(sceneMng: SceneMng){
         this.sceneMng = sceneMng;
 

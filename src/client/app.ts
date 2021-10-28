@@ -8,10 +8,10 @@ export default class App {
     }
 
     async init(): Promise<void> {
-         
+        this.sceneMng.Init();
     }
 
     run(): void{
-        this.sceneMng.Init();
+        this.sceneMng.Run();
     }
 }

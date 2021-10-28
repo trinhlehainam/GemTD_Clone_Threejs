@@ -37,22 +37,29 @@ export default class SceneMng {
         this.scene.Init();
         LoadMng.EnableLoadingScene(false);
 
-        this.renderer.setAnimationLoop(this.Loop.bind(this));
         window.addEventListener('resize', this.onResizeWindow.bind(this));
         return true;
     }
 
+    Run(): void {
+        this.renderer.setAnimationLoop(this.Loop.bind(this));
+    }
+
+    Stop(): void {
+        this.renderer.setAnimationLoop(null);
+    }
+
     Loop(): void {
         const deltaTime_s = this.clock.getDelta();
-        this.scene.ProcessInput();
 
         if (this.scene.IsChangeSceneEnable()) {
             this.scene = this.scene.ChangeScene(this.scene); 
         }
 
+        this.scene.ProcessInput();
         this.scene.Update(deltaTime_s); 
-
         this.scene.Render();
+
         this.Render();
     }
 
