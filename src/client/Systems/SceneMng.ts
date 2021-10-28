@@ -49,7 +49,9 @@ export default class SceneMng {
         this.renderer.setAnimationLoop(null);
     }
 
-    Loop(): void {
+    GetRenderer(): WebGLRenderer { return this.renderer; }
+
+    private Loop(): void {
         const deltaTime_s = this.clock.getDelta();
 
         if (this.scene.IsChangeSceneEnable()) {
@@ -62,8 +64,10 @@ export default class SceneMng {
 
         this.Render();
     }
-
-    GetRenderer(): WebGLRenderer { return this.renderer; }
+    
+    private Render(): void {
+        this.renderer.render(this.scene.GetThreeScene(), this.scene.GetThreeCamera());
+    }
 
     private onResizeWindow(): void {
         const camera = this.scene.GetThreeCamera();
@@ -72,9 +76,5 @@ export default class SceneMng {
             camera.updateProjectionMatrix();
         }
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    private Render(): void {
-        this.renderer.render(this.scene.GetThreeScene(), this.scene.GetThreeCamera());
     }
 }
