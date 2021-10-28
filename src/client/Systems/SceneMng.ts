@@ -5,15 +5,12 @@ import ModelDataMng from './ModelDataMng'
 
 import IScene from '../Scenes/IScene'
 import TitleScene from '../Scenes/TitleScene'
-import KeyboardInput from '../Inputs/KeyboardInput'
-import INPUT_ID from '../Inputs/InputID'
 
 export default class SceneMng {
     private renderer: WebGLRenderer
     private scene: IScene
     private loadMng: LoadingManager
     private clock: Clock
-    private controller: KeyboardInput
     private loading: HTMLElement
     
     constructor() {
@@ -32,9 +29,7 @@ export default class SceneMng {
         this.clock = new Clock();
 
         this.scene = new TitleScene(this);
-        this.scene.Init();
 
-        this.controller = new KeyboardInput([37,39,40,38,32]);
         this.loading = document.querySelector('#loading') as HTMLElement;
         console.log(this.loading);
         this.loadMng.onLoad = this.onLoad.bind(this);
@@ -45,7 +40,19 @@ export default class SceneMng {
         this.loading.style.display = 'none'; 
     }
 
+    onProgress(): void {
+        this.loading.style.display = 'flex';
+    }
+
     async Init(): Promise<boolean> {
+        ModelDataMng.LoadAsync('./assets/factory/eve.glb', 'eve');
+        ModelDataMng.LoadAsync('./assets/factory/eve2.glb', 'eve2');
+        ModelDataMng.LoadAsync('./assets/factory/factory1.glb', 'factory');
+        ModelDataMng.LoadAsync('./assets/factory/factory2.glb', 'factory2');
+        await ModelDataMng.GetAsync('eve', 'factory');
+
+        this.scene.Init();
+
         this.renderer.setAnimationLoop(this.Loop.bind(this));
         window.addEventListener('resize', this.onResizeWindow.bind(this));
         return true;
@@ -53,9 +60,9 @@ export default class SceneMng {
 
     Loop(): void {
         const deltaTime_s = this.clock.getDelta();
-        this.controller.Update();
+        this.scene.ProcessInput();
 
-        if (this.controller.IsJustPressed(INPUT_ID.SPACE)) {
+        if (this.scene.IsChangeSceneEnable()) {
             this.scene = this.scene.ChangeScene(this.scene); 
         }
 

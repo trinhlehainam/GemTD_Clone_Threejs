@@ -22,6 +22,7 @@ export default abstract class IInput {
         this.kNumStates = this.inputStates.length;
     }
 
+    abstract Destroy(): void;
     abstract Update(): void;
 
     IsPressed(inputID: INPUT_ID): boolean {

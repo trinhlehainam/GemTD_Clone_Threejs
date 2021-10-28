@@ -13,6 +13,11 @@ export default class KeyboardInput extends IInput {
         window.addEventListener('keyup', this.keyUp.bind(this));
     }
 
+    Destroy(): void {
+        window.removeEventListener('keydown', this.keyDown.bind(this));
+        window.removeEventListener('keyup', this.keyUp.bind(this));
+    }
+
     Update(): void {
         if (this.inputCodes === undefined) return;
         

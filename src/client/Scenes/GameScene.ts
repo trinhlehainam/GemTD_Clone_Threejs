@@ -63,6 +63,7 @@ export default class GameScene extends IScene {
     ChangeScene(scene: IScene): IScene {
         scene.Destroy();
         scene = new TitleScene(this.sceneMng);
+        scene.Init();
         return scene;
     }
 }

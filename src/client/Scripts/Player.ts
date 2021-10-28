@@ -1,13 +1,14 @@
-import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
-import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader'
 import * as THREE from 'three'
 import {GUI} from 'dat.gui'
 
+import ModelDataMng from '../Systems/ModelDataMng'
+
 import Entity from '../GameObjects/Entity'
 import Transform from '../Components/Transform'
+
+import INPUT_ID from '../Inputs/InputID'
 import KeyboardInput from '../Inputs/KeyboardInput'
 import InputCommand from '../Inputs/InputCommand'
-import INPUT_ID from '../Inputs/InputID'
 
 import Stage from './Stage'
 
@@ -41,7 +42,6 @@ export default class Player {
         this.mapPos = new THREE.Vector2(); 
 
         this.enitty = new Entity('player');
-        const url: string = './assets/factory/eve.glb';
         this.actions = {};
         this.currentActionKey = "";
 
@@ -64,6 +64,14 @@ export default class Player {
         this.quaternion = new THREE.Quaternion();
         this.camera = camera;
         this.dest = new THREE.Vector3();
+
+        /* this.model = ModelDataMng.GetObject3D('eve') as THREE.Group;
+        this.scene.add(this.model); */
+        console.log(ModelDataMng.Instance());
+        this.model = ModelDataMng.GetObject3D('eve') as THREE.Group;
+        console.log(this.model);
+        this.scene.add(this.model);
+        this.mixer = new THREE.AnimationMixer(this.model);
 
         document.addEventListener('pointerdown', this.onPointerDown.bind(this));
     }
@@ -128,12 +136,12 @@ export default class Player {
 
         let distance = diff.lengthSq();
         const bias:number = 0.01;
-        if (distance <= bias){
+        /* if (distance <= bias){
             transform.position.copy(this.dest)
             this.setAnim('idle', 0.5);
         }
         else
-            this.setAnim('run', 0.5);
+            this.setAnim('run', 0.5); */
 
         
 

@@ -6,13 +6,14 @@ import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 // TODO: refactoring data variable 
 export default class ModelDataMng {
     private static instance?: ModelDataMng
+
     private gltfLoader: GLTFLoader
     private dracoLoader: DRACOLoader
     private objectMap: Map<string, Group>
     private animationMap: Map<string, AnimationClip>
     private gltfPromiseMap: Map<string, Promise<GLTF>>
 
-    constructor(loadMng: LoadingManager) {
+    private constructor(loadMng: LoadingManager) {
         this.gltfLoader = new GLTFLoader(loadMng);
         this.dracoLoader = new DRACOLoader(loadMng);
         this.dracoLoader.setDecoderPath('./js/libs/draco/');
@@ -21,6 +22,10 @@ export default class ModelDataMng {
         this.objectMap = new Map();
         this.animationMap = new Map();
         this.gltfPromiseMap = new Map();
+    }
+
+    static Instance(): ModelDataMng | undefined {
+        return this.instance;
     }
 
     static Create(loadMng: LoadingManager): void {
@@ -68,16 +73,22 @@ export default class ModelDataMng {
         return true;
     }
 
-    static async GetAsync(...keys: string[]) {
+    static async GetAsync(...keys: string[]): Promise<GLTF[] | undefined> {
         if (!this.IsCreated()) return undefined;
-
         const instance = this.instance!;
-        let promises: Array<Promise<GLTF>> = new Array();
-        keys.forEach(key => promises.push(instance.gltfPromiseMap.get(key) as Promise<GLTF>))
         
-        let data = await Promise.all(promises);
+        // Extract valid keys have in gltfPomiseMap
+        const validKeys = keys.filter(key => instance.gltfPromiseMap.has(key));
+
+        const promises = validKeys.map(key => instance.gltfPromiseMap.get(key) as Promise<GLTF>);
         
-        return data;
+        const data = await Promise.all(promises);
+
+        validKeys.forEach(key => instance.gltfPromiseMap.delete(key));
+
+        validKeys.forEach((key, idx) => instance.objectMap.set(key, data[idx].scene));
+
+        return data.length > 0 ? data : undefined;
     }
 
     static GetObject3D(key: string): Group | undefined {
@@ -97,8 +108,6 @@ export default class ModelDataMng {
             console.log('FALSE: Instance of ModelMng is not created !!!');
             return false;
         }
-        this.instance.objectMap.clear();
-        this.instance.animationMap.clear();
         return true;
     }
     

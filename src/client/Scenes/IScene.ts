@@ -9,6 +9,7 @@ export default abstract class IScene {
     protected sceneMng: SceneMng
 
     private isEnable: boolean
+    private isChange: boolean
     constructor(sceneMng: SceneMng){
         this.sceneMng = sceneMng;
 
@@ -17,6 +18,8 @@ export default abstract class IScene {
         this.camera = new Camera();
 
         this.isEnable = true; 
+
+        this.isChange = false;
     }
 
     abstract Init(): boolean;
@@ -29,5 +32,7 @@ export default abstract class IScene {
     SetEnable(flag: boolean): void { this.isEnable = flag; }
     GetThreeScene(): Scene { return this.scene; }
     GetThreeCamera(): Camera { return this.camera; }
+    EnableChangeScene(): void { this.isChange = true; }
     IsEnable(): boolean { return this.isEnable; }
+    IsChangeSceneEnable(): boolean { return this.isChange; }
 }
