@@ -15,6 +15,7 @@
         "@types/three": "^0.133.1",
         "dat.gui": "^0.7.7",
         "three": "^0.133.1",
+        "three-csg-ts": "^3.1.9",
         "three-pathfinding": "^0.15.0",
         "ts-loader": "^9.2.6",
         "tslint": "^6.1.3",

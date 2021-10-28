@@ -19,6 +19,8 @@ export default class Enemy {
 
     private stage: Stage
     private mapPos: THREE.Vector2
+
+    private pathfinding: any
     
     // Debug
     private gui: GUI
@@ -28,7 +30,13 @@ export default class Enemy {
     private pointer: THREE.Vector2
     private raycaster: THREE.Raycaster
     private camera: THREE.Camera
-    private dest: THREE.Vector3
+    private targetPos: THREE.Vector3
+
+    // Pathfinding
+    private ZONE: string;
+    private navMeshGroup: number;
+    private navMesh: THREE.Mesh;
+    private pathLines?: THREE.Line
 
     constructor(scene: THREE.Scene, stage: Stage, camera: THREE.Camera){
         this.scene = scene;
@@ -44,7 +52,7 @@ export default class Enemy {
         this.pointer = new THREE.Vector2(); 
         this.raycaster = new THREE.Raycaster();
         this.camera = camera;
-        this.dest = new THREE.Vector3();
+        this.targetPos = new THREE.Vector3();
 
         this.model = ModelDataMng.GetObject3D('swat-guy') as THREE.Group;
         this.model.traverse(node => {
@@ -65,7 +73,16 @@ export default class Enemy {
         transform.scale.multiplyScalar(3);
 
         this.scene.add(this.model);
-        const pathfinding = new Pathfinding();
+
+        this.pathfinding = new Pathfinding();
+        this.ZONE = 'factory';
+        this.navMesh = this.scene.getObjectByName('ground') as THREE.Mesh;
+        const zone = Pathfinding.createZone(this.navMesh.geometry, 0.02);
+        console.log(zone);
+        this.pathfinding.setZoneData(this.ZONE, zone);
+        this.navMeshGroup = this.pathfinding.getGroup(this.ZONE, this.model.position) as number;
+        console.log(this.navMeshGroup);
+
         document.addEventListener('pointerdown', this.onPointerDown.bind(this));
     }
 
@@ -83,7 +100,7 @@ export default class Enemy {
         if (transform === undefined) return;
 
         const speed: number = 10.0 * dt_s;
-        const diff = this.dest.clone().sub(transform.position);
+        const diff = this.targetPos.clone().sub(transform.position);
         const dir = diff.clone().normalize();
         // transform.position.z += speed;
         transform.position.add(dir.multiplyScalar(speed));
@@ -96,7 +113,7 @@ export default class Enemy {
         let distance = diff.lengthSq();
         const bias:number = 0.01;
         if (distance <= bias){
-            transform.position.copy(this.dest)
+            transform.position.copy(this.targetPos)
             this.setAnim('idle', 0.5);
         }
         else
@@ -141,12 +158,37 @@ export default class Enemy {
 
        const intersects = this.raycaster.intersectObject(this.stage.GetGround(), false);
 
-       if (intersects.length > 0) {
-           const intersect = intersects[0];
-           const normal = new THREE.Vector3();
-           normal.copy((intersects[0].face as THREE.Face).normal);
-           normal.transformDirection(intersects[0].object.matrixWorld).normalize();
-           this.dest = intersect.point.clone().add(normal).setY(0);
-       }
+       if (!intersects.length) return;
+
+       const intersect = intersects[0];
+       this.targetPos = intersect.point;
+
+       const path = this.pathfinding.findPath(this.model.position, this.targetPos, this.ZONE, this.navMeshGroup) as Array<THREE.Vector3>;
+       if (!path.length) return;
+
+       if (this.pathLines) this.scene.remove(this.pathLines);
+       const points = [this.model.position];
+       path.forEach((vertex) => points.push(vertex.clone()));
+       const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+       const lineMat = new THREE.LineBasicMaterial({color: 0xff0000, linewidth:2});
+       this.pathLines = new THREE.Line(lineGeo, lineMat);
+
+       const debugPaths = [this.model.position].concat(path);
+       debugPaths.forEach(vertex => {
+           const geometry = new THREE.SphereGeometry(0.3);
+           const mat = new THREE.MeshBasicMaterial({color: 0xff0000});
+           const node = new THREE.Mesh(geometry, mat);
+           node.position.copy(vertex);
+           this.pathLines?.add(node);
+       });
+
+       this.scene.add(this.pathLines);
+       console.log(this.navMeshGroup);
+       console.log(this.targetPos.setY(0));
+       console.log(path);
+       /* const normal = new THREE.Vector3();
+       normal.copy((intersects[0].face as THREE.Face).normal);
+       normal.transformDirection(intersects[0].object.matrixWorld).normalize();
+       this.targetPos = intersect.point.clone().add(normal).setY(0); */
     }
 }

@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import {CSG} from 'three-csg-ts'
 import { Vector2 } from 'three'
 
 // TODO: Refactoring function name
@@ -23,12 +24,18 @@ export default class Stage {
         this.tileSize = new THREE.Vector2(5, 5);
 
         const groundGeo = new THREE.PlaneGeometry(
-            this.tileNum.x * this.tileSize.x, this.tileNum.y * this.tileSize.y
+            this.tileNum.x * this.tileSize.x, this.tileNum.y * this.tileSize.y,
+            this.tileNum.x, this.tileNum.y
         );
         const groundMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
         this.ground = new THREE.Mesh(groundGeo, groundMat);
+        this.ground.name = 'ground';
         this.ground.receiveShadow = true;
-        this.ground.rotateX(-Math.PI/2);
+        // NOTE: rotate vertices of Object3D for pathfinding work correctly
+        this.ground.geometry.rotateX(-Math.PI/2);
+        this.ground.quaternion.identity();
+        this.ground.position.set(0, 0, 0);
+        //
         this.scene.add(this.ground);
 
         const dirLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -59,11 +66,14 @@ export default class Stage {
         const cursorMat = new THREE.MeshBasicMaterial({color: 0x00ff00, opacity: 0.5, transparent: true, visible: false});
         this.cursor = new THREE.Mesh(cursorGeo, cursorMat);
         this.scene.add(this.cursor);
-            
-        /* this.pointer = new THREE.Vector2();
-        this.raycaster = new THREE.Raycaster(); */
 
-        // document.addEventListener('pointermove', this.onPointerMove.bind(this));
+        /* const box = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshNormalMaterial());
+        const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.2 , 8, 8));
+        box.updateMatrix();
+        sphere.updateMatrix();
+
+        const subRes = CSG.subtract(box, sphere);
+        this.scene.add(subRes); */
     }
 
     VecToMapPos(pos: THREE.Vector3): THREE.Vector3 {
@@ -122,28 +132,4 @@ export default class Stage {
     // NOTE: Only for debug
     // TODO: Delete later
     GetGround(): THREE.Mesh { return this.ground; }
-
-    /* private onPointerMove(event: PointerEvent): void {
-       this.pointer.set(
-           +(event.clientX/window.innerWidth)*2-1,
-           -(event.clientY/window.innerHeight)*2+1
-       );
-
-       this.raycaster.setFromCamera( this.pointer, this.camera );
-
-       const intersects = this.raycaster.intersectObject(this.ground, false);
-
-       if (intersects.length > 0) {
-           const intersect = intersects[0];
-           const normal = new THREE.Vector3();
-           normal.copy((intersects[0].face as THREE.Face).normal);
-           normal.transformDirection(intersects[0].object.matrixWorld).normalize();
-           this.arrow.setDirection(normal);
-           this.arrow.position.copy(intersects[0].point);
-           this.cursor.position.copy(intersect.point).add(normal);
-           this.cursor.position
-           .divideScalar(this.tileSize.x).floor().multiplyScalar(this.tileSize.x)
-           .addScalar(this.tileSize.x/2);
-       }
-    } */
 }
