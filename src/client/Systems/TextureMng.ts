@@ -60,7 +60,6 @@ export default class TextureMng {
             console.log('FALSE: Instance of TextureMng is not created !!!');
             return false;
         }
-        this.instance.textureMap.clear();
         return true;
     }
 }

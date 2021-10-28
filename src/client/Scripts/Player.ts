@@ -69,7 +69,8 @@ export default class Player {
         this.scene.add(this.model); */
         console.log(ModelDataMng.Instance());
         this.model = ModelDataMng.GetObject3D('eve') as THREE.Group;
-        console.log(this.model);
+        const animations = ModelDataMng.GetAnimationClips('eve');
+        console.log(animations);
         this.scene.add(this.model);
         this.mixer = new THREE.AnimationMixer(this.model);
 

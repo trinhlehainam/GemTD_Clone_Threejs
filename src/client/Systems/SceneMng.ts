@@ -1,7 +1,6 @@
-import {LoadingManager, WebGLRenderer, Color, Clock, PerspectiveCamera, sRGBEncoding} from 'three'
+import {WebGLRenderer, Color, Clock, PerspectiveCamera, sRGBEncoding} from 'three'
 
-import TextureMng from './TextureMng'
-import ModelDataMng from './ModelDataMng'
+import {LoadMng, ModelDataMng} from '../Systems/LoadMng'
 
 import IScene from '../Scenes/IScene'
 import TitleScene from '../Scenes/TitleScene'
@@ -9,9 +8,7 @@ import TitleScene from '../Scenes/TitleScene'
 export default class SceneMng {
     private renderer: WebGLRenderer
     private scene: IScene
-    private loadMng: LoadingManager
     private clock: Clock
-    private loading: HTMLElement
     
     constructor() {
         this.renderer = new WebGLRenderer({antialias: true, alpha: true});
@@ -22,26 +19,12 @@ export default class SceneMng {
         this.renderer.shadowMap.enabled = true;
         document.body.appendChild(this.renderer.domElement);
 
-        this.loadMng = new LoadingManager();
-        TextureMng.Create(this.loadMng);
-        ModelDataMng.Create(this.loadMng);
+        LoadMng.Create();
 
         this.clock = new Clock();
 
         this.scene = new TitleScene(this);
-
-        this.loading = document.querySelector('#loading') as HTMLElement;
-        console.log(this.loading);
-        this.loadMng.onLoad = this.onLoad.bind(this);
-
-    }
-
-    onLoad(): void {
-        this.loading.style.display = 'none'; 
-    }
-
-    onProgress(): void {
-        this.loading.style.display = 'flex';
+        this.Render();
     }
 
     async Init(): Promise<boolean> {
@@ -52,6 +35,7 @@ export default class SceneMng {
         await ModelDataMng.GetAsync('eve', 'factory');
 
         this.scene.Init();
+        LoadMng.EnableLoadingScene(false);
 
         this.renderer.setAnimationLoop(this.Loop.bind(this));
         window.addEventListener('resize', this.onResizeWindow.bind(this));
@@ -69,7 +53,7 @@ export default class SceneMng {
         this.scene.Update(deltaTime_s); 
 
         this.scene.Render();
-        this.renderer.render(this.scene.GetThreeScene(), this.scene.GetThreeCamera());
+        this.Render();
     }
 
     GetRenderer(): WebGLRenderer { return this.renderer; }
@@ -81,5 +65,9 @@ export default class SceneMng {
             camera.updateProjectionMatrix();
         }
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    private Render(): void {
+        this.renderer.render(this.scene.GetThreeScene(), this.scene.GetThreeCamera());
     }
 }

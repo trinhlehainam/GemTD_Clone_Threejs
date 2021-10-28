@@ -10,7 +10,7 @@ export default class ModelDataMng {
     private gltfLoader: GLTFLoader
     private dracoLoader: DRACOLoader
     private objectMap: Map<string, Group>
-    private animationMap: Map<string, AnimationClip>
+    private animationMap: Map<string, AnimationClip[]>
     private gltfPromiseMap: Map<string, Promise<GLTF>>
 
     private constructor(loadMng: LoadingManager) {
@@ -52,9 +52,7 @@ export default class ModelDataMng {
             url,
             gltf => {
                 instance.objectMap.set(key, gltf.scene);
-                const animKeys = Object.keys(gltf.animations);
-                for (let i = 0; i < animKeys.length - 1; ++i)
-                    instance.animationMap.set(animKeys[i], gltf.animations[i]);
+                instance.animationMap.set(key, gltf.animations);
             }
         )
         return true;
@@ -77,16 +75,26 @@ export default class ModelDataMng {
         if (!this.IsCreated()) return undefined;
         const instance = this.instance!;
         
+        // Extract data
         // Extract valid keys have in gltfPomiseMap
-        const validKeys = keys.filter(key => instance.gltfPromiseMap.has(key));
+        const validDataKeys = keys.filter(key => instance.gltfPromiseMap.has(key));
 
-        const promises = validKeys.map(key => instance.gltfPromiseMap.get(key) as Promise<GLTF>);
+        const promises = validDataKeys.map(key => instance.gltfPromiseMap.get(key) as Promise<GLTF>);
         
         const data = await Promise.all(promises);
+        validDataKeys.forEach((key, idx) => instance.objectMap.set(key, data[idx].scene));
+        //
+        
+        // Extract animation clips
+        validDataKeys.forEach((key, idx) => {
+            if(data[idx].animations.length > 0)
+                instance.animationMap.set(key, data[idx].animations);
+        });
+        //
 
-        validKeys.forEach(key => instance.gltfPromiseMap.delete(key));
-
-        validKeys.forEach((key, idx) => instance.objectMap.set(key, data[idx].scene));
+        // Clear loaded promises
+        validDataKeys.forEach(key => instance.gltfPromiseMap.delete(key));
+        //
 
         return data.length > 0 ? data : undefined;
     }
@@ -97,7 +105,7 @@ export default class ModelDataMng {
         return instance.objectMap.get(key);
     }
 
-    static GetAnimationClip(key: string): AnimationClip | undefined {
+    static GetAnimationClips(key: string): AnimationClip[] | undefined {
         if (!this.IsCreated()) return undefined;
         const instance = this.instance!;
         return instance.animationMap.get(key);
