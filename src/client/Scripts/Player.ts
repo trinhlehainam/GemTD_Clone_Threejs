@@ -14,8 +14,8 @@ import Stage from './Stage'
 
 export default class Player {
     private enitty: Entity
-    private model?: THREE.Group
-    private mixer?: THREE.AnimationMixer
+    private model: THREE.Group
+    private mixer: THREE.AnimationMixer
     private scene: THREE.Scene;
     private actions: {[key: string]: THREE.AnimationAction}
     private currentActionKey: string
@@ -43,7 +43,6 @@ export default class Player {
 
         this.enitty = new Entity('player');
         this.actions = {};
-        this.currentActionKey = "";
 
         this.constroller = new KeyboardInput([37,39,38,40,65,16]);
         this.inputCommand = new InputCommand(this.constroller);
@@ -65,14 +64,26 @@ export default class Player {
         this.camera = camera;
         this.dest = new THREE.Vector3();
 
-        /* this.model = ModelDataMng.GetObject3D('eve') as THREE.Group;
-        this.scene.add(this.model); */
         console.log(ModelDataMng.Instance());
         this.model = ModelDataMng.GetObject3D('eve') as THREE.Group;
-        const animations = ModelDataMng.GetAnimationClips('eve');
-        console.log(animations);
-        this.scene.add(this.model);
+        this.model.traverse(node => {
+            if (node instanceof THREE.Mesh)
+                node.castShadow = true;
+        })
         this.mixer = new THREE.AnimationMixer(this.model);
+        const animations = ModelDataMng.GetAnimationClips('eve') as THREE.AnimationClip[];
+        this.currentActionKey = "idle";
+        console.log(animations);
+        const animKeys = Object.keys(animations);
+        for (let i = 0; i < animKeys.length; ++i){
+            this.actions[animations[i].name.toLowerCase()] = this.mixer.clipAction(animations[i]);
+        }
+        console.log(this.actions);
+        const transform = this.enitty.transform;
+        transform.SetThreeObject(this.model);
+        transform.scale.multiplyScalar(3);
+
+        this.scene.add(this.model);
 
         document.addEventListener('pointerdown', this.onPointerDown.bind(this));
     }
@@ -137,12 +148,12 @@ export default class Player {
 
         let distance = diff.lengthSq();
         const bias:number = 0.01;
-        /* if (distance <= bias){
+        if (distance <= bias){
             transform.position.copy(this.dest)
             this.setAnim('idle', 0.5);
         }
         else
-            this.setAnim('run', 0.5); */
+            this.setAnim('run', 0.5);
 
         
 

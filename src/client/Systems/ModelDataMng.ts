@@ -3,7 +3,7 @@ import {GLTFLoader, GLTF} from 'three/examples/jsm/loaders/GLTFLoader'
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 
 // TODO: Add load model from FBX and OBJ file
-// TODO: refactoring data variable 
+// TODO: refactoring data variable
 export default class ModelDataMng {
     private static instance?: ModelDataMng
 
