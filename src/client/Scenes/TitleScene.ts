@@ -1,6 +1,8 @@
 import IScene from './IScene'
 import SceneMng from '../Systems/SceneMng'
 
+import {LoadMng, TextureMng} from '../Systems/LoadMng'
+
 import GameScene from './GameScene'
 
 import INPUT_ID from '../Inputs/InputID'
@@ -13,7 +15,6 @@ export default class TitleScene extends IScene {
         super(sceneMng);
         this.sceneMng.GetRenderer().setClearColor(0x000000);
         this.controller = new KeyboardInput([37,39,38,40,32]);
-
     }
 
     Destroy(): void {
@@ -24,8 +25,13 @@ export default class TitleScene extends IScene {
         this.controller.Update();
     }
 
-    Init(): boolean {
-        return true;
+    Init(): Promise<boolean> {
+        return new Promise(
+            async (resolve, reject) => {
+                resolve(true);
+                reject('INIT ERROR: Fail to initialize TitleScene !!!');
+            }
+        );
     }
 
     Update(deltaTime_s: number): void {
@@ -37,11 +43,16 @@ export default class TitleScene extends IScene {
 
     }
 
-    ChangeScene(scene: IScene): IScene {
-        scene.Destroy();
-        console.log('TitleScene to GameScene');
-        scene = new GameScene(this.sceneMng);
-        scene.Init();
-        return scene;
+    ChangeScene(scene: IScene): Promise<IScene> {
+        return new Promise(
+            async (resolve, reject) => {
+                scene.Destroy();
+                console.log('TitleScene to GameScene');
+                scene = new GameScene(this.sceneMng);
+                await scene.Init();
+                resolve(scene);
+                reject('ERROR: Fail to change TitliScene to GameScene !!!');
+            }
+        );
     }
 }

@@ -23,12 +23,12 @@ export default abstract class IScene {
         this.isChange = false;
     }
 
-    abstract Init(): boolean;
+    abstract Init(): Promise<boolean>;
     abstract Destroy(): void;
     abstract ProcessInput(): void;
     abstract Update(deltaTime_s: number): void;
     abstract Render(): void;
-    abstract ChangeScene(scene: IScene): IScene;
+    abstract ChangeScene(scene: IScene): Promise<IScene>;
 
     SetEnable(flag: boolean): void { this.isEnable = flag; }
     GetThreeScene(): Scene { return this.scene; }

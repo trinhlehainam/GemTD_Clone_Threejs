@@ -32,9 +32,8 @@ export default class SceneMng {
         ModelDataMng.LoadAsync('./assets/factory/eve2.glb', 'eve2');
         ModelDataMng.LoadAsync('./assets/factory/factory1.glb', 'factory');
         ModelDataMng.LoadAsync('./assets/factory/factory2.glb', 'factory2');
-        await ModelDataMng.GetAsync('eve', 'factory');
 
-        this.scene.Init();
+        await this.scene.Init();
         LoadMng.EnableLoadingScene(false);
 
         window.addEventListener('resize', this.onResizeWindow.bind(this));
@@ -55,7 +54,16 @@ export default class SceneMng {
         const deltaTime_s = this.clock.getDelta();
 
         if (this.scene.IsChangeSceneEnable()) {
-            this.scene = this.scene.ChangeScene(this.scene); 
+            this.scene.ChangeScene(this.scene).then(
+                scene =>  {
+                    this.scene = scene;
+                    this.Run();
+                    LoadMng.EnableLoadingScene(false);
+                }
+            );
+            this.Stop();
+            LoadMng.EnableLoadingScene(true);
+            return;
         }
 
         this.scene.ProcessInput();

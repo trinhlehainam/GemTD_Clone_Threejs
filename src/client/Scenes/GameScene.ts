@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
+import {LoadMng, ModelDataMng} from '../Systems/LoadMng'
+
 import IScene from './IScene'
 import SceneMng from '../Systems/SceneMng'
 import TitleScene from './TitleScene'
@@ -10,7 +12,7 @@ import Stage  from '../Scripts/Stage'
 import Player from '../Scripts/Player'
 
 export default class GameScene extends IScene {
-    private player: Player
+    private player?: Player
     private stage: Stage
     
     // Debug
@@ -32,38 +34,51 @@ export default class GameScene extends IScene {
         document.body.appendChild(this.stats.domElement);
 
         this.stage = new Stage(this.scene, this.camera);
-        this.player = new Player(this.scene, this.stage, this.camera);
     }
 
     Destroy(): void {
         document.body.removeChild(this.stats.domElement);
-        this.player.destroy();
+        this.player?.destroy();
     }
 
     ProcessInput(): void {
 
     }
 
-    Init(): boolean {
+    Init(): Promise<boolean> {
         this.sceneMng.GetRenderer().setClearColor(0x00aaaa);
-        return true;
+        return new Promise(
+            async (resolve, reject) => {
+                // Wait until Player's resources are loaded before create Player
+                await ModelDataMng.GetAsync('eve', 'factory');
+                this.player = new Player(this.scene, this.stage, this.camera);
+                //
+                resolve(true);
+                reject('INIT ERROR: Fail to initialize GameScene !!!');
+            }
+        );
     }
 
     Update(deltaTime_s: number): void {
-        this.player.processInput();
+        this.player?.processInput();
 
-        this.player.update(deltaTime_s);
+        this.player?.update(deltaTime_s);
     }
 
     Render(): void {
         this.stats.update();
-        this.player.render();
+        this.player?.render();
     }
 
-    ChangeScene(scene: IScene): IScene {
-        scene.Destroy();
-        scene = new TitleScene(this.sceneMng);
-        scene.Init();
-        return scene;
+    ChangeScene(scene: IScene): Promise<IScene> {
+        return new Promise(
+            async (resolve, reject) => {
+                scene.Destroy();
+                scene = new TitleScene(this.sceneMng);
+                await scene.Init();
+                resolve(scene);
+                reject('ERROR : Fail to change scene !!!');
+            }
+        );
     }
 }
