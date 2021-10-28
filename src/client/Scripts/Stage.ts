@@ -1,13 +1,13 @@
 import * as THREE from 'three'
 import {CSG} from 'three-csg-ts'
-import { Vector2 } from 'three'
+import { Mesh, Vector2 } from 'three'
 
 // TODO: Refactoring function name
 // TODO: Refactoring convert player tile pos
 export default class Stage {
     private tileNum: THREE.Vector2
     private tileSize: THREE.Vector2
-    private ground: THREE.Mesh
+    private navMesh: THREE.Mesh
     private scene: THREE.Scene
 
     // Debug
@@ -23,20 +23,19 @@ export default class Stage {
         this.tileNum = new THREE.Vector2(38, 38);
         this.tileSize = new THREE.Vector2(5, 5);
 
-        const groundGeo = new THREE.PlaneGeometry(
+        const navGeo = new THREE.PlaneGeometry(
             this.tileNum.x * this.tileSize.x, this.tileNum.y * this.tileSize.y,
             this.tileNum.x, this.tileNum.y
         );
-        const groundMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
-        this.ground = new THREE.Mesh(groundGeo, groundMat);
-        this.ground.name = 'ground';
-        this.ground.receiveShadow = true;
+        const navMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa, visible: false});
+        this.navMesh = new THREE.Mesh(navGeo, navMat);
+        this.navMesh.name = 'ground';
+        this.navMesh.receiveShadow = true;
         // NOTE: rotate vertices of Object3D for pathfinding work correctly
-        this.ground.geometry.rotateX(-Math.PI/2);
-        this.ground.quaternion.identity();
-        this.ground.position.set(0, 0, 0);
+        this.navMesh.geometry.rotateX(-Math.PI/2);
+        this.navMesh.quaternion.identity();
         //
-        this.scene.add(this.ground);
+        this.scene.add(this.navMesh);
 
         const dirLight = new THREE.DirectionalLight(0xffffff, 1);
         dirLight.position.set(20,80,80);
@@ -67,13 +66,21 @@ export default class Stage {
         this.cursor = new THREE.Mesh(cursorGeo, cursorMat);
         this.scene.add(this.cursor);
 
-        /* const box = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshNormalMaterial());
-        const sphere = new THREE.Mesh(new THREE.SphereGeometry(1.2 , 8, 8));
+        const box = new THREE.Mesh(new THREE.BoxGeometry(20, 20, 40), new THREE.MeshNormalMaterial());
+        box.position.set(20, 0, 20);
         box.updateMatrix();
-        sphere.updateMatrix();
+        const navMesh = CSG.subtract(this.navMesh, box);
 
-        const subRes = CSG.subtract(box, sphere);
-        this.scene.add(subRes); */
+        this.scene.remove(this.navMesh);
+        this.navMesh = navMesh;
+        this.scene.add(this.navMesh);
+        this.navMesh.name = 'ground';
+        box.scale.multiplyScalar(0.75);
+        this.scene.add(box);
+
+        const groundMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
+        this.scene.add(new THREE.Mesh(navGeo, groundMat)); 
+        // this.ground.position.set(0, -5 , 0);
     }
 
     VecToMapPos(pos: THREE.Vector3): THREE.Vector3 {
@@ -131,5 +138,5 @@ export default class Stage {
 
     // NOTE: Only for debug
     // TODO: Delete later
-    GetGround(): THREE.Mesh { return this.ground; }
+    GetGround(): THREE.Mesh { return this.navMesh; }
 }
