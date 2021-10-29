@@ -168,9 +168,14 @@ export default class Enemy {
 
        const intersect = intersects[0];
        this.targetPos = intersect.point;
-
-       this.paths = this.pathfinding.findPath(this.model.position, this.targetPos, this.ZONE, this.navMeshGroup) as Array<THREE.Vector3>;
+        
+       // NOTE: findPath may return null
+       // NOTE: add check guard
+       const paths = this.pathfinding.findPath(this.model.position, this.targetPos, this.ZONE, this.navMeshGroup) as Array<THREE.Vector3>;
+       if (!paths) return;
+       this.paths = paths;
        if (!this.paths.length) return;
+       //
 
        if (this.pathLines) this.scene.remove(this.pathLines);
        const points = [this.model.position];
@@ -193,6 +198,7 @@ export default class Enemy {
        console.log(this.navMeshGroup);
        console.log(this.targetPos.setY(0));
        console.log(this.paths);
+
        /* const normal = new THREE.Vector3();
        normal.copy((intersects[0].face as THREE.Face).normal);
        normal.transformDirection(intersects[0].object.matrixWorld).normalize();
