@@ -2,13 +2,14 @@ import * as THREE from 'three'
 import {CSG} from 'three-csg-ts'
 import {Pathfinding} from 'three-pathfinding'
 
+import TileMap2D from '../Utils/TileMap2D'
+
 // TODO: Refactoring function name
 // TODO: Refactoring convert player tile pos
 // TODO: tilemap helper class
 // TODO: tilemap pathfinding class
 export default class Stage {
-    private tileNum: THREE.Vector2
-    private tileSize: THREE.Vector2
+    private map: TileMap2D
 
     private scene: THREE.Scene
     private objects: Array<THREE.Mesh>
@@ -32,12 +33,11 @@ export default class Stage {
         this.scene = scene;
         this.camera = camera;
 
-        this.tileNum = new THREE.Vector2(38, 38);
-        this.tileSize = new THREE.Vector2(5, 5);
+        this.map = new TileMap2D(new THREE.Vector2(38, 38), new THREE.Vector2(5, 5));
 
         const navGeo = new THREE.PlaneGeometry(
-            this.tileNum.x * this.tileSize.x, this.tileNum.y * this.tileSize.y,
-            this.tileNum.x, this.tileNum.y
+            this.map.tileNum.x * this.map.tileSize.x, this.map.tileNum.y * this.map.tileSize.y,
+            this.map.tileNum.x, this.map.tileNum.y
         );
         const navMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa, visible: false});
         this.navMesh = new THREE.Mesh(navGeo, navMat);
@@ -68,37 +68,37 @@ export default class Stage {
         const ambient = new THREE.AmbientLight(0x666666);
         this.scene.add(ambient);
 
-        const axis = new THREE.AxesHelper(this.tileSize.x * 1.5);
+        const axis = new THREE.AxesHelper(this.map.tileSize.x * 1.5);
         this.scene.add(axis);
 
-        const grid = new THREE.GridHelper(this.tileNum.x * this.tileSize.x, this.tileNum.x);
+        const grid = new THREE.GridHelper(this.map.tileNum.x * this.map.tileSize.x, this.map.tileNum.x);
         this.scene.add(grid);
 
-        const cursorGeo = new THREE.BoxGeometry(this.tileSize.x, this.tileSize.x, this.tileSize.x);
+        const cursorGeo = new THREE.BoxGeometry(this.map.tileSize.x, this.map.tileSize.x, this.map.tileSize.x);
         const cursorMat = new THREE.MeshBasicMaterial({color: 0x00ff00, opacity: 0.5, transparent: true, visible: false});
         this.cursor = new THREE.Mesh(cursorGeo, cursorMat);
         this.scene.add(this.cursor);
         
         this.goals = new Array<THREE.Vector3>(6);
-        this.goals[0] = (this.TileToMapPos(new THREE.Vector2(4, 18)));
-        this.goals[1] = (this.TileToMapPos(new THREE.Vector2(32, 18)));
-        this.goals[2] = (this.TileToMapPos(new THREE.Vector2(32, 4)));
-        this.goals[3] = (this.TileToMapPos(new THREE.Vector2(18, 4)));
-        this.goals[4] = (this.TileToMapPos(new THREE.Vector2(18, 32)));
-        this.goals[5] = (this.TileToMapPos(new THREE.Vector2(32, 32)));
+        this.goals[0] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(4, 18)));
+        this.goals[1] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(32, 18)));
+        this.goals[2] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(32, 4)));
+        this.goals[3] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(18, 4)));
+        this.goals[4] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(18, 32)));
+        this.goals[5] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(32, 32)));
 
         this.goals.forEach(
             goal => {
                 const debugSphere = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({color: 0xff0000}));
-                debugSphere.position.copy(this.VecToMapPos(goal));
+                debugSphere.position.copy(this.map.getWorldPosFromVector3(goal));
                 this.scene.add(debugSphere);
             }
         )
 
         this.objects = [];
-        const box = new THREE.Mesh(new THREE.BoxGeometry(this.tileSize.x, this.tileSize.x * 2, this.tileSize.y), new THREE.MeshNormalMaterial());
+        const box = new THREE.Mesh(new THREE.BoxGeometry(this.map.tileSize.x, this.map.tileSize.x * 2, this.map.tileSize.y), new THREE.MeshNormalMaterial());
         box.position.set(20, 0, 20);
-        box.position.copy(this.VecToMapPos(box.position));
+        box.position.copy(this.map.getWorldPosFromVector3(box.position));
         this.objects.push(box.clone());
         box.scale.multiplyScalar(1.5);
         box.updateMatrix();
@@ -133,7 +133,7 @@ export default class Stage {
     private GeneratePaths(): void {
         if (this.pathLines) this.scene.remove(this.pathLines);
         for (const [i, val] of this.goals.entries()){
-            const startPos = i === 0 ? this.TileToMapPos(new THREE.Vector2(0, 0)) : this.goals[i-1];
+            const startPos = i === 0 ? this.map.getWorldPosFromTilePos(new THREE.Vector2(0, 0)) : this.goals[i-1];
             const targetPos = this.goals[i]; 
             const paths = this.pathfinding.findPath(
                 startPos, targetPos, this.ZONE, this.groupIDs[i]) as Array<THREE.Vector3>;
@@ -169,45 +169,10 @@ export default class Stage {
         console.log(this.paths)
     }
 
-    VecToMapPos(pos: THREE.Vector3): THREE.Vector3 {
-        let ret = pos.clone();
-        const tmpY = ret.y;
-        return ret
-           .divideScalar(this.tileSize.x).floor().multiplyScalar(this.tileSize.x)
-           .addScalar(this.tileSize.x/2).setY(tmpY);
-    }
-
-    TileToMapPos(tilePos: THREE.Vector2): THREE.Vector3 {
-        let tmpTilePos = tilePos.clone();
-        tmpTilePos.addScalar(-this.tileNum.x/2);
-        let ret = new THREE.Vector3(tmpTilePos.x*this.tileSize.x, 0, tmpTilePos.y*this.tileSize.y);
-        return ret
-           .divideScalar(this.tileSize.x).floor().multiplyScalar(this.tileSize.x)
-           .addScalar(this.tileSize.x/2).setY(0);
-    }
-
-    VecToTilePos(pos: THREE.Vector3): THREE.Vector2 {
-        let tmpPos = pos.clone();
-        tmpPos
-           .divideScalar(this.tileSize.x).round().multiplyScalar(this.tileSize.x);
-        return new THREE.Vector2(tmpPos.x/this.tileSize.x, tmpPos.z/this.tileSize.y).addScalar(this.tileNum.x/2);
-    }
-
-    GetMapPos(tilePos: THREE.Vector2): THREE.Vector3 {
-        let ret = new THREE.Vector3();
-        ret.setX(this.tileSize.x * tilePos.x);
-        ret.setZ(this.tileSize.y * tilePos.y);
-        return ret
-           .divideScalar(this.tileSize.x).floor().multiplyScalar(this.tileSize.x)
-           .addScalar(this.tileSize.x/2);
-    }
-
-    GetTileNum(): THREE.Vector2 { return this.tileNum; }
-
     SetCursorPos(pos: THREE.Vector3): void {
         this.cursor.position.copy(pos)
-        .divideScalar(this.tileSize.x).floor().multiplyScalar(this.tileSize.x)
-        .addScalar(this.tileSize.x/2);
+        .divideScalar(this.map.tileSize.x).floor().multiplyScalar(this.map.tileSize.x)
+        .addScalar(this.map.tileSize.x/2);
     }
 
     SetCursorVisible(flag: boolean): void {
