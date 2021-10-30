@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import {CSG} from 'three-csg-ts'
-import {Pathfinding} from 'three-pathfinding'
 
 import TileMap2 from '../Utils/TileMap2'
 import TileMap2Pathfinding from '../Utils/TileMap2Pathfinding'
@@ -17,12 +16,8 @@ export default class Stage {
 
     private pathfinder: TileMap2Pathfinding 
 
-    // Debug
-    /* private pointer: THREE.Vector2
-    private raycaster: THREE.Raycaster */
     private cursor: THREE.Mesh
     private camera: THREE.Camera
-    private pathLines?: THREE.Line
 
     constructor(scene: THREE.Scene, camera: THREE.Camera) {
         this.scene = scene;
@@ -39,7 +34,6 @@ export default class Stage {
         ground.name = 'ground';
         ground.receiveShadow = true;
         // NOTE: rotate vertices of Object3D for pathfinding work correctly
-        // TODO: fix nav mesh resolution
         ground.geometry.rotateX(-Math.PI/2);
         ground.quaternion.identity();
         //
@@ -94,58 +88,37 @@ export default class Stage {
 
         this.pathfinder.goals = [...goals];
 
-        this.objects = [];
         const box = new THREE.Mesh(new THREE.BoxGeometry(this.map.tileSize.x, this.map.tileSize.x * 2, this.map.tileSize.y), new THREE.MeshNormalMaterial());
-        box.position.set(20, 0, 20);
-        box.position.copy(this.map.getWorldPosFromVector3(box.position));
-        this.objects.push(box.clone());
-        box.scale.multiplyScalar(1.5);
-        box.updateMatrix();
-        const subMesh = CSG.subtract(ground, box);
-        
+        this.objects = [];
+        for (let i = 0; i < 5; ++i){
+            const clone = box.clone();
+            clone.position.copy(this.map.getWorldPosFromTilePos(i, 4));
+            clone.updateMatrix();
+            this.objects.push(clone);
+        }
+        let subMesh: THREE.Mesh = ground.clone();
+        this.objects.forEach(box => {
+            const clone = box.clone();
+            clone.scale.multiplyScalar(1.5);
+            subMesh = CSG.subtract(subMesh, clone);
+        });
+        console.log(this.objects); 
         const navMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa, visible: false});
-        const navMesh = new THREE.Mesh(subMesh.geometry, navMat);
+        const navMesh = new THREE.Mesh(subMesh!.geometry, navMat);
         this.scene.add(navMesh);
         navMesh.name = 'NavMesh';
 
         this.pathfinder.init(navMesh, 'map');
         
-        // Ground basement
-        this.scene.add(this.objects[0]);
-        
-        // Pathfinding set up
-
+        this.objects.forEach(obj => this.scene.add(obj));
         this.GeneratePaths();
-        console.log(this.pathfinder);
     }
 
     private GeneratePaths(): void {
-        if (this.pathLines) this.scene.remove(this.pathLines);
+        if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
         this.pathfinder.generatePaths(this.map);
-        for (const paths of this.pathfinder.paths){
-            //
-            const points: THREE.Vector3[] = [];
-            paths.forEach((vertex) => points.push(vertex.clone()));
-            const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-            const lineMat = new THREE.LineBasicMaterial({color: 0xff0000, linewidth:2});
-            const line = new THREE.Line(lineGeo, lineMat);
-            if(!this.pathLines)
-                this.pathLines = line
-            else
-                this.pathLines.add(line);
-
-            const debugPaths = [...paths];
-            debugPaths.forEach(vertex => {
-                const geometry = new THREE.SphereGeometry(0.3);
-                const mat = new THREE.MeshBasicMaterial({color: 0xff0000});
-                const node = new THREE.Mesh(geometry, mat);
-                node.position.copy(vertex);
-                this.pathLines?.add(node);
-            });
-        }
-
-        if (this.pathLines)
-            this.scene.add(this.pathLines);
+        if (this.pathfinder.debugLines)
+            this.scene.add(this.pathfinder.debugLines);
     }
 
     SetCursorPos(pos: THREE.Vector3): void {

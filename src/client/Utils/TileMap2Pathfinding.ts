@@ -1,4 +1,7 @@
-import {Mesh, Vector3, Line} from 'three'
+import {Mesh, Vector3,
+    // debug
+    Line, BufferGeometry, LineBasicMaterial, MeshBasicMaterial, SphereGeometry}
+    from 'three'
 import {Pathfinding} from 'three-pathfinding'
 import TileMap2 from './TileMap2'
 
@@ -9,6 +12,9 @@ export default class TileMap2Pathfinding {
     public paths: Array<Vector3[]>
     public goals: Array<Vector3>
     public groupIDs: Array<number>
+
+    // Debug
+    public debugLines?: Line
 
     constructor() {
         this.goals = [];
@@ -42,9 +48,26 @@ export default class TileMap2Pathfinding {
             if (!paths) return;
             this.paths[i] = paths;
             if (!this.paths.length) return;
+            //
 
             const points = [startPos];
             this.paths[i].forEach((vertex) => points.push(vertex.clone()));
+            const lineGeo = new BufferGeometry().setFromPoints(points);
+            const lineMat = new LineBasicMaterial({color: 0xff0000, linewidth:2});
+            const line = new Line(lineGeo, lineMat);
+            if(!this.debugLines)
+                this.debugLines = line
+            else
+                this.debugLines.add(line);
+
+            const debugPaths = [startPos].concat(this.paths[i]);
+            debugPaths.forEach(vertex => {
+                const geometry = new SphereGeometry(0.3);
+                const mat = new MeshBasicMaterial({color: 0xff0000});
+                const node = new Mesh(geometry, mat);
+                node.position.copy(vertex);
+                this.debugLines?.add(node);
+            });
             this.paths[i].forEach(path => path.setY(0));
         }
     }
