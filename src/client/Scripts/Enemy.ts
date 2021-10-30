@@ -78,7 +78,6 @@ export default class Enemy {
         this.pathfinding = new Pathfinding();
         this.ZONE = 'factory';
         this.navMesh = this.scene.getObjectByName('ground') as THREE.Mesh;
-        console.log(this.navMesh);
         const zone = Pathfinding.createZone(this.navMesh.geometry, 0.02);
         console.log(zone);
         this.pathfinding.setZoneData(this.ZONE, zone);
@@ -86,7 +85,7 @@ export default class Enemy {
         console.log(this.navMeshGroup);
         this.paths = [];
 
-        document.addEventListener('pointerdown', this.onPointerDown.bind(this));
+        // document.addEventListener('pointerdown', this.onPointerDown.bind(this));
     }
 
     destroy(): void {

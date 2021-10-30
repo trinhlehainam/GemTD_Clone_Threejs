@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
-import {LoadMng, ModelDataMng} from '../Systems/LoadMng'
+import {ModelDataMng} from '../Systems/LoadMng'
 
 import IScene from './IScene'
 import SceneMng from '../Systems/SceneMng'
