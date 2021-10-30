@@ -97,21 +97,17 @@ export default class Player {
 
         const transform = this.enitty.GetComponent(Transform);
         if (transform === undefined) return;
-        /* if (this.constroller.IsJustReleased(INPUT_ID.LEFT)){
-            this.mapPos.x += -1;
+        if (this.constroller.IsReleased(INPUT_ID.LEFT)){
+            transform.position.x += +15 * dt_s;
         }
-        if (this.constroller.IsJustReleased(INPUT_ID.RIGHT)){
-            this.mapPos.x += 1;
+        if (this.constroller.IsReleased(INPUT_ID.RIGHT)){
+            transform.position.x += -15 * dt_s;
         }
-        if (this.constroller.IsJustReleased(INPUT_ID.UP)){
-            this.mapPos.y += -1;
+        if (this.constroller.IsReleased(INPUT_ID.UP)){
+            transform.position.z += +15 * dt_s;
         }
-        if (this.constroller.IsJustReleased(INPUT_ID.DOWN)){
-            this.mapPos.y += 1;
-        }
-        let cursor: boolean = false;
-        if (this.constroller.IsPressed(INPUT_ID.SHIFT)){
-            cursor = true;
+        if (this.constroller.IsReleased(INPUT_ID.DOWN)){
+            transform.position.z += -15 * dt_s;
         }
 
         let shot: boolean = false;
@@ -128,44 +124,26 @@ export default class Player {
                 this.setAnim('firing', 0.5);
             else
                 this.setAnim('idle', 0.5);
-        } */
-
-        const speed: number = 10.0 * dt_s;
-        const diff = this.dest.clone().sub(transform.position);
-        const dir = diff.clone().normalize();
-        // transform.position.z += speed;
-        transform.position.add(dir.multiplyScalar(speed));
-        
-        const qua = new THREE.Quaternion();
-        let forward = transform.forward;
-        qua.setFromUnitVectors(forward, dir);
-        transform.rotation.multiply(qua);
-
-        let distance = diff.lengthSq();
-        const bias:number = 0.01;
-        if (distance <= bias){
-            transform.position.copy(this.dest)
-            this.setAnim('idle', 0.5);
         }
-        else
-            this.setAnim('run', 0.5);
-
-        
 
         if (Object.keys(this.actions).length > 0){
         }
 
-        /* this.mapPos.clamp(new Vector2(), new Vector2(37, 37));
-        transform.position = this.stage.TileToMapPos(this.mapPos);
-        this.stage.SetCursorPos(transform.position);
-        this.stage.SetCursorVisible(cursor); */
+        let cursor: boolean = false;
+        if (this.constroller.IsJustPressed(INPUT_ID.SHIFT)){
+            cursor = true;
+            this.stage.SetCursorPos(transform.position);
+            this.stage.SetCursorVisible(cursor);
+            this.stage.AddObject();
+        }
+
+
+        if (this.constroller.IsJustPressed(INPUT_ID.SPACE)){
+            this.stage.UpdatePath();
+        }
 
         this.mixer?.update(dt_s);
         this.enitty.Update(dt_s);
-
-        /* console.log(
-            'Player pos: ' + `${transform.position.x}, ${transform.position.y}, ${transform.position.z}`);
-        console.log('Player map tile pos: ' + `${this.mapPos.x}, ${this.mapPos.y}`); */
 
         this.updateGUI();
     }

@@ -2,21 +2,29 @@ import {Mesh, Vector3,
     // debug
     Line, BufferGeometry, LineBasicMaterial, MeshBasicMaterial, SphereGeometry}
     from 'three'
+import {CSG} from 'three-csg-ts'
 import {Pathfinding} from 'three-pathfinding'
 import TileMap2 from './TileMap2'
 
 export default class TileMap2Pathfinding {
-    public pathfinding: any;
-    public navMesh?: Mesh
+    public pathfinding: any
     public ZONE?: string
     public paths: Array<Vector3[]>
     public goals: Array<Vector3>
     public groupIDs: Array<number>
 
+    private baseMesh: BufferGeometry
+    private navMesh: BufferGeometry
+    private map: TileMap2
+
     // Debug
     public debugLines?: Line
 
-    constructor() {
+    constructor(baseNavMesh: Mesh, map: TileMap2) {
+        this.baseMesh = baseNavMesh.geometry.clone();
+        this.map = map;
+        this.navMesh = this.baseMesh;
+
         this.goals = [];
         this.paths = [];
         this.groupIDs = [];
@@ -24,14 +32,21 @@ export default class TileMap2Pathfinding {
         this.pathfinding = new Pathfinding();
     }
 
-    init(navMesh: Mesh, zoneName: string){
+    init(zoneName: string, subObjects: Array<Mesh> = []){
         this.ZONE = zoneName;
-        this.navMesh = navMesh;
+        let subMesh = new Mesh(this.baseMesh);
+        subObjects.forEach(box => {
+            const clone = box.clone();
+            clone.scale.multiplyScalar(1.0);
+            clone.updateMatrix();
+            subMesh = CSG.subtract(subMesh, clone);
+        });
+        this.navMesh = subMesh.geometry;
 
         this.groupIDs = new Array<number>(this.goals.length);
-        this.pathfinding = new Pathfinding();
+        // this.pathfinding = new Pathfinding();
         this.ZONE = 'map';
-        const zone = Pathfinding.createZone(this.navMesh.geometry, 0.02);
+        const zone = Pathfinding.createZone(this.navMesh);
         console.log(zone);
         this.pathfinding.setZoneData(this.ZONE, zone);
         for (const [idx, val] of this.goals.entries())
@@ -39,9 +54,10 @@ export default class TileMap2Pathfinding {
         console.log(this.groupIDs);
     }
 
-    generatePaths(map: TileMap2): void {
+    generatePaths(): void {
+        this.debugLines = undefined;
         for (const [i, val] of this.goals.entries()){
-            const startPos = i === 0 ? map.getWorldPosFromTilePos(0, 0) : this.goals[i-1];
+            const startPos = i === 0 ? this.map.getWorldPosFromTilePos(0, 0) : this.goals[i-1];
             const targetPos = this.goals[i]; 
             const paths = this.pathfinding.findPath(
                 startPos, targetPos, this.ZONE, this.groupIDs[i]) as Array<Vector3>;
@@ -55,6 +71,7 @@ export default class TileMap2Pathfinding {
             const lineGeo = new BufferGeometry().setFromPoints(points);
             const lineMat = new LineBasicMaterial({color: 0xff0000, linewidth:2});
             const line = new Line(lineGeo, lineMat);
+
             if(!this.debugLines)
                 this.debugLines = line
             else
@@ -70,5 +87,6 @@ export default class TileMap2Pathfinding {
             });
             this.paths[i].forEach(path => path.setY(0));
         }
+        console.log(this.debugLines);
     }
 }

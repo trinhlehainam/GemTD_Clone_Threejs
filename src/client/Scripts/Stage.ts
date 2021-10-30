@@ -19,6 +19,8 @@ export default class Stage {
     private cursor: THREE.Mesh
     private camera: THREE.Camera
 
+    private box: THREE.Mesh
+
     constructor(scene: THREE.Scene, camera: THREE.Camera) {
         this.scene = scene;
         this.camera = camera;
@@ -68,7 +70,7 @@ export default class Stage {
         this.cursor = new THREE.Mesh(cursorGeo, cursorMat);
         this.scene.add(this.cursor);
 
-        this.pathfinder = new TileMap2Pathfinding();
+        this.pathfinder = new TileMap2Pathfinding(ground, this.map);
         
         const goals = new Array<THREE.Vector3>(6);
         goals[0] = (this.map.getWorldPosFromTilePos(4, 18));
@@ -89,6 +91,7 @@ export default class Stage {
         this.pathfinder.goals = [...goals];
 
         const box = new THREE.Mesh(new THREE.BoxGeometry(this.map.tileSize.x, this.map.tileSize.x * 2, this.map.tileSize.y), new THREE.MeshNormalMaterial());
+        this.box = box.clone();
         this.objects = [];
         for (let i = 0; i < 5; ++i){
             const clone = box.clone();
@@ -96,27 +99,41 @@ export default class Stage {
             clone.updateMatrix();
             this.objects.push(clone);
         }
-        let subMesh: THREE.Mesh = ground.clone();
-        this.objects.forEach(box => {
-            const clone = box.clone();
-            clone.scale.multiplyScalar(1.5);
-            subMesh = CSG.subtract(subMesh, clone);
-        });
         console.log(this.objects); 
-        const navMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa, visible: false});
-        const navMesh = new THREE.Mesh(subMesh!.geometry, navMat);
-        this.scene.add(navMesh);
-        navMesh.name = 'NavMesh';
 
-        this.pathfinder.init(navMesh, 'map');
+        this.pathfinder.init('map', [...this.objects]);
+        this.objects.forEach(box => {
+            box.scale.multiplyScalar(0.75);
+        })
         
         this.objects.forEach(obj => this.scene.add(obj));
+        this.GeneratePaths();
+        
+    }
+
+    AddObject(): void {
+        const clone = this.box.clone();
+        clone.position.copy(this.cursor.position).setY(0);
+        clone.scale.multiplyScalar(0.75);
+        clone.updateMatrix();
+        this.objects.push(clone);
+        this.scene.add(clone);
+    }
+
+    UpdatePath(): void {
+        this.objects.forEach(box => {
+            box.scale.divideScalar(0.75);
+        })
+        this.pathfinder.init('map', [...this.objects]);
+        this.objects.forEach(box => {
+            box.scale.multiplyScalar(0.75);
+        })
         this.GeneratePaths();
     }
 
     private GeneratePaths(): void {
         if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
-        this.pathfinder.generatePaths(this.map);
+        this.pathfinder.generatePaths();
         if (this.pathfinder.debugLines)
             this.scene.add(this.pathfinder.debugLines);
     }
