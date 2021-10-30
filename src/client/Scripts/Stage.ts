@@ -2,53 +2,48 @@ import * as THREE from 'three'
 import {CSG} from 'three-csg-ts'
 import {Pathfinding} from 'three-pathfinding'
 
-import TileMap2D from '../Utils/TileMap2D'
+import TileMap2 from '../Utils/TileMap2'
+import TileMap2Pathfinding from '../Utils/TileMap2Pathfinding'
 
 // TODO: Refactoring function name
 // TODO: Refactoring convert player tile pos
 // TODO: tilemap helper class
 // TODO: tilemap pathfinding class
 export default class Stage {
-    private map: TileMap2D
+    private map: TileMap2
 
     private scene: THREE.Scene
     private objects: Array<THREE.Mesh>
 
-    // Path
-    private navMesh: THREE.Mesh
-    private goals: Array<THREE.Vector3>
-    private pathfinding: any;
-    private ZONE: string
-    private groupIDs: number[]
-    private paths: Array<THREE.Vector3[]>
-    private pathLines?: THREE.Line
+    private pathfinder: TileMap2Pathfinding 
 
     // Debug
     /* private pointer: THREE.Vector2
     private raycaster: THREE.Raycaster */
     private cursor: THREE.Mesh
     private camera: THREE.Camera
+    private pathLines?: THREE.Line
 
     constructor(scene: THREE.Scene, camera: THREE.Camera) {
         this.scene = scene;
         this.camera = camera;
 
-        this.map = new TileMap2D(new THREE.Vector2(38, 38), new THREE.Vector2(5, 5));
+        this.map = new TileMap2(new THREE.Vector2(38, 38), new THREE.Vector2(5, 5));
 
-        const navGeo = new THREE.PlaneGeometry(
+        const groundGeo = new THREE.PlaneGeometry(
             this.map.tileNum.x * this.map.tileSize.x, this.map.tileNum.y * this.map.tileSize.y,
             this.map.tileNum.x, this.map.tileNum.y
         );
-        const navMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa, visible: false});
-        this.navMesh = new THREE.Mesh(navGeo, navMat);
-        this.navMesh.name = 'ground';
-        this.navMesh.receiveShadow = true;
+        const groundMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.name = 'ground';
+        ground.receiveShadow = true;
         // NOTE: rotate vertices of Object3D for pathfinding work correctly
         // TODO: fix nav mesh resolution
-        this.navMesh.geometry.rotateX(-Math.PI/2);
-        this.navMesh.quaternion.identity();
+        ground.geometry.rotateX(-Math.PI/2);
+        ground.quaternion.identity();
         //
-        this.scene.add(this.navMesh);
+        this.scene.add(ground);
 
         const dirLight = new THREE.DirectionalLight(0xffffff, 1);
         dirLight.position.set(20,80,80);
@@ -78,22 +73,26 @@ export default class Stage {
         const cursorMat = new THREE.MeshBasicMaterial({color: 0x00ff00, opacity: 0.5, transparent: true, visible: false});
         this.cursor = new THREE.Mesh(cursorGeo, cursorMat);
         this.scene.add(this.cursor);
-        
-        this.goals = new Array<THREE.Vector3>(6);
-        this.goals[0] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(4, 18)));
-        this.goals[1] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(32, 18)));
-        this.goals[2] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(32, 4)));
-        this.goals[3] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(18, 4)));
-        this.goals[4] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(18, 32)));
-        this.goals[5] = (this.map.getWorldPosFromTilePos(new THREE.Vector2(32, 32)));
 
-        this.goals.forEach(
+        this.pathfinder = new TileMap2Pathfinding();
+        
+        const goals = new Array<THREE.Vector3>(6);
+        goals[0] = (this.map.getWorldPosFromTilePos(4, 18));
+        goals[1] = (this.map.getWorldPosFromTilePos(32, 18));
+        goals[2] = (this.map.getWorldPosFromTilePos(32, 4));
+        goals[3] = (this.map.getWorldPosFromTilePos(18, 4));
+        goals[4] = (this.map.getWorldPosFromTilePos(18, 32));
+        goals[5] = (this.map.getWorldPosFromTilePos(32, 32));
+
+        goals.forEach(
             goal => {
                 const debugSphere = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({color: 0xff0000}));
                 debugSphere.position.copy(this.map.getWorldPosFromVector3(goal));
                 this.scene.add(debugSphere);
             }
         )
+
+        this.pathfinder.goals = [...goals];
 
         this.objects = [];
         const box = new THREE.Mesh(new THREE.BoxGeometry(this.map.tileSize.x, this.map.tileSize.x * 2, this.map.tileSize.y), new THREE.MeshNormalMaterial());
@@ -102,48 +101,31 @@ export default class Stage {
         this.objects.push(box.clone());
         box.scale.multiplyScalar(1.5);
         box.updateMatrix();
-        const navMesh = CSG.subtract(this.navMesh, box);
+        const subMesh = CSG.subtract(ground, box);
+        
+        const navMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa, visible: false});
+        const navMesh = new THREE.Mesh(subMesh.geometry, navMat);
+        this.scene.add(navMesh);
+        navMesh.name = 'NavMesh';
 
-        this.scene.remove(this.navMesh);
-        this.navMesh = navMesh;
-        this.scene.add(this.navMesh);
-        this.navMesh.name = 'ground';
+        this.pathfinder.init(navMesh, 'map');
         
         // Ground basement
-        const groundMat = new THREE.MeshPhongMaterial({color: 0xaaaaaa});
-        this.scene.add(new THREE.Mesh(navGeo, groundMat)); 
         this.scene.add(this.objects[0]);
         
         // Pathfinding set up
-        this.groupIDs = new Array<number>(this.goals.length);
-        this.pathfinding = new Pathfinding();
-        this.ZONE = 'map';
-        const zone = Pathfinding.createZone(this.navMesh.geometry, 0.02);
-        console.log(zone);
-        this.pathfinding.setZoneData(this.ZONE, zone);
-        for (const [idx, val] of this.goals.entries())
-            this.groupIDs[idx] = this.pathfinding.getGroup(this.ZONE, val) as number;
-        console.log(this.groupIDs);
-
-        this.paths = [];
 
         this.GeneratePaths();
+        console.log(this.pathfinder);
     }
 
     private GeneratePaths(): void {
         if (this.pathLines) this.scene.remove(this.pathLines);
-        for (const [i, val] of this.goals.entries()){
-            const startPos = i === 0 ? this.map.getWorldPosFromTilePos(new THREE.Vector2(0, 0)) : this.goals[i-1];
-            const targetPos = this.goals[i]; 
-            const paths = this.pathfinding.findPath(
-                startPos, targetPos, this.ZONE, this.groupIDs[i]) as Array<THREE.Vector3>;
-            if (!paths) return;
-            this.paths[i] = paths;
-            if (!this.paths.length) return;
+        this.pathfinder.generatePaths(this.map);
+        for (const paths of this.pathfinder.paths){
             //
-
-            const points = [startPos];
-            this.paths[i].forEach((vertex) => points.push(vertex.clone()));
+            const points: THREE.Vector3[] = [];
+            paths.forEach((vertex) => points.push(vertex.clone()));
             const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
             const lineMat = new THREE.LineBasicMaterial({color: 0xff0000, linewidth:2});
             const line = new THREE.Line(lineGeo, lineMat);
@@ -152,7 +134,7 @@ export default class Stage {
             else
                 this.pathLines.add(line);
 
-            const debugPaths = [startPos].concat(this.paths[i]);
+            const debugPaths = [...paths];
             debugPaths.forEach(vertex => {
                 const geometry = new THREE.SphereGeometry(0.3);
                 const mat = new THREE.MeshBasicMaterial({color: 0xff0000});
@@ -160,13 +142,10 @@ export default class Stage {
                 node.position.copy(vertex);
                 this.pathLines?.add(node);
             });
-            this.paths[i].forEach(path => path.setY(0));
         }
 
         if (this.pathLines)
             this.scene.add(this.pathLines);
-
-        console.log(this.paths)
     }
 
     SetCursorPos(pos: THREE.Vector3): void {
@@ -186,8 +165,4 @@ export default class Stage {
     Render(): void {
 
     }
-
-    // NOTE: Only for debug
-    // TODO: Delete later
-    GetGround(): THREE.Mesh { return this.navMesh; }
 }

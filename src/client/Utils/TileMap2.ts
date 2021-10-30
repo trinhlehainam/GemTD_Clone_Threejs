@@ -1,6 +1,6 @@
 import {Vector2, Vector3} from 'three'
 
-export default class TileMap2D {
+export default class TileMap2 {
     tileNum: Vector2
     tileSize: Vector2
     mapPos: Vector2
