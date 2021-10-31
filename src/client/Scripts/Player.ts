@@ -144,7 +144,6 @@ export default class Player {
         this.stage.SetCursorVisible(cursor);
 
         if (this.constroller.IsJustPressed(INPUT_ID.SPACE)){
-            this.stage.UpdatePath();
         }
 
         this.mixer?.update(dt_s);

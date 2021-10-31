@@ -10,8 +10,8 @@ import TileMap2Pathfinding from '../Utils/TileMap2Pathfinding'
 export default class Stage {
     // map
     private map: TileMap2
-    private tiles: Array<boolean>
     private objects: Array<THREE.Mesh>
+    private subMeshes: Array<THREE.Mesh>
     private pathfinder: TileMap2Pathfinding 
     private goals: Array<THREE.Vector3>
 
@@ -26,8 +26,8 @@ export default class Stage {
         this.camera = camera;
 
         this.map = new TileMap2(new THREE.Vector2(38, 38), new THREE.Vector2(5, 5));
-        this.tiles = Array<boolean>(this.map.tileSize.x * this.map.tileSize.y).fill(false);
-        this.objects = new Array(this.tiles.length);
+        this.objects = new Array(this.map.tileSize.x * this.map.tileSize.y);
+        this.subMeshes = new Array(this.map.tileSize.x * this.map.tileSize.y);
 
         const groundGeo = new THREE.PlaneGeometry(
             this.map.tileNum.x * this.map.tileSize.x, this.map.tileNum.y * this.map.tileSize.y,
@@ -90,9 +90,6 @@ export default class Stage {
             }
         )
 
-        const goalTilePos = this.goals.map(goal => this.map.getTilePosFromVector3(goal));
-        goalTilePos.forEach(pos => this.tiles[pos.y * this.map.tileNum.x + pos.x] = true); 
-
         this.pathfinder.goals = [...this.goals];
 
         const box = new THREE.Mesh(new THREE.BoxGeometry(this.map.tileSize.x, this.map.tileSize.x * 2, this.map.tileSize.y), new THREE.MeshNormalMaterial());
@@ -108,42 +105,63 @@ export default class Stage {
         clone.position.copy(this.cursor.position).setY(0);
         clone.scale.multiplyScalar(0.75);
         clone.updateMatrix();
-        this.objects.push(clone);
+        const isValid = this.AddSubMeshes(clone);
+        if (!isValid) return;
         const cursorTilePos = this.GetCursorTilePos();
+        this.objects[this.GetTileIndex(cursorTilePos)] = clone;
+        this.scene.add(clone);
+    }
+
+    AddSubMeshes(object: THREE.Mesh): boolean {
+        const cursorTilePos = this.GetCursorTilePos();
+        this.subMeshes[this.GetTileIndex(cursorTilePos)] = object;
         if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
-        this.objects.forEach(box => {
+        this.subMeshes.forEach(box => {
             box.scale.divideScalar(0.75);
         })
-        const flag = this.pathfinder.updateSubMesh('map', this.objects.filter(obj => obj !== undefined));
-        this.objects.forEach(box => {
+        const flag = this.pathfinder.updateSubMeshes('map', this.subMeshes.filter(obj => obj !== undefined));
+        this.subMeshes.forEach(box => {
             box.scale.multiplyScalar(0.75);
         })
         if (this.pathfinder.debugLines)
             this.scene.add(this.pathfinder.debugLines);
-        this.SetTile(cursorTilePos, flag);
         console.log(flag);
         if (!flag){
-            this.objects.pop();
-            return;
+            delete this.subMeshes[this.GetTileIndex(cursorTilePos)];
         }
-        this.scene.add(clone);
+        return flag;
+    }
+
+    CheckValidTile(object: THREE.Mesh): boolean {
+        const cursorTilePos = this.GetCursorTilePos();
+        this.subMeshes[this.GetTileIndex(cursorTilePos)] = object;
+        if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
+        this.subMeshes.forEach(box => {
+            box.scale.divideScalar(0.75);
+        })
+        const flag = this.pathfinder.checkValidSubMeshes('map', this.subMeshes.filter(obj => obj !== undefined));
+        this.subMeshes.forEach(box => {
+            box.scale.multiplyScalar(0.75);
+        })
+        if (this.pathfinder.debugLines)
+            this.scene.add(this.pathfinder.debugLines);
+        console.log(flag);
+        delete this.subMeshes[this.GetTileIndex(cursorTilePos)];
+        return flag;
     }
 
     RemoveObject(): void {
         if (this.IsTileEmpty()) return;
     }
 
-    GetTile(tilePos: THREE.Vector2): boolean {
-        return this.tiles[tilePos.y * this.map.tileNum.x + tilePos.x];
+    GetTileIndex(tilePos: THREE.Vector2): number {
+        return tilePos.y * this.map.tileNum.x + tilePos.x;
     }
 
     IsTileEmpty(): boolean {
         const cursorTilePos = this.GetCursorTilePos();
-        return !this.tiles[(cursorTilePos.y * this.map.tileNum.x) + cursorTilePos.x];
-    }
-
-    private SetTile(tilePos: THREE.Vector2, flag: boolean): void {
-        this.tiles[(tilePos.y * this.map.tileNum.x) + tilePos.x] = flag;
+        console.log(this.objects[this.GetTileIndex(cursorTilePos)]);
+        return !this.objects[this.GetTileIndex(cursorTilePos)];
     }
 
     private GetCursorTilePos(): THREE.Vector2 {
@@ -151,18 +169,7 @@ export default class Stage {
         const tilePos = this.map.getTilePosFromVector3(pos);
         return tilePos;
     }
-
-    UpdatePath(): void {
-        this.objects.forEach(box => {
-            box.scale.divideScalar(0.75);
-        })
-        this.pathfinder.init('map', this.objects.filter(obj => obj !== undefined));
-        this.objects.forEach(box => {
-            box.scale.multiplyScalar(0.75);
-        })
-        this.GeneratePaths();
-    }
-
+    
     private GeneratePaths(): void {
         if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
         this.pathfinder.generatePaths();
@@ -174,8 +181,14 @@ export default class Stage {
         this.cursor.position.copy(pos)
         .divideScalar(this.map.tileSize.x).floor().multiplyScalar(this.map.tileSize.x)
         .addScalar(this.map.tileSize.x/2);
-        const isEmpty = this.IsTileEmpty();
-        const color: number = isEmpty ? 0x00ff00 : 0xff0000;
+        let isEmpty = this.IsTileEmpty();
+        console.log('empty tile : ' + isEmpty);
+        const clone = this.box.clone();
+        clone.position.copy(this.cursor.position).setY(0);
+        clone.scale.multiplyScalar(0.75);
+        clone.updateMatrix();
+        const isValid = this.CheckValidTile(clone);
+        const color: number = isEmpty && isValid ? 0x00ff00 : 0xff0000;
         (this.cursor.material as THREE.MeshBasicMaterial).color = new THREE.Color(color);
     }
 

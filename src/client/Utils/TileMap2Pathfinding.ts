@@ -52,7 +52,7 @@ export default class TileMap2Pathfinding {
         console.log(this.groupIDs);
     }
 
-    updateSubMesh(zoneName: string, subObjects: Array<Mesh>): boolean {
+    updateSubMeshes(zoneName: string, subObjects: Array<Mesh>): boolean {
         const tmpNavMesh = this.navMesh.clone();  
         const tmpPaths = [...this.paths];
         const tmpDebugPaths = this.debugLines?.clone();
@@ -68,6 +68,25 @@ export default class TileMap2Pathfinding {
             for (const [idx, val] of this.goals.entries())
                 this.groupIDs[idx] = this.pathfinding.getGroup(this.ZONE, val) as number;
         }
+        return ret;
+    }
+
+    checkValidSubMeshes(zoneName: string, subObjects: Array<Mesh>): boolean {
+        const tmpNavMesh = this.navMesh.clone();  
+        const tmpPaths = [...this.paths];
+        const tmpDebugPaths = this.debugLines?.clone();
+        this.init(zoneName, subObjects);
+        const ret = this.generatePaths();
+
+        //
+        this.navMesh = tmpNavMesh;
+        this.paths = tmpPaths;
+        this.debugLines = tmpDebugPaths;
+        const zone = Pathfinding.createZone(this.navMesh);
+        console.log(zone);
+        this.pathfinding.setZoneData(this.ZONE, zone);
+        for (const [idx, val] of this.goals.entries())
+            this.groupIDs[idx] = this.pathfinding.getGroup(this.ZONE, val) as number;
         return ret;
     }
 
