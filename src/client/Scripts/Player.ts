@@ -43,7 +43,7 @@ export default class Player {
         this.enitty = new Entity('player');
         this.actions = {};
 
-        this.constroller = new KeyboardInput([37,39,38,40,65,16]);
+        this.constroller = new KeyboardInput([37,39,38,40,32,16,65,68]);
         this.inputCommand = new InputCommand(this.constroller);
         this.inputCommand.AddPattern(
             'shot',
@@ -130,13 +130,18 @@ export default class Player {
         }
 
         let cursor: boolean = false;
-        if (this.constroller.IsJustPressed(INPUT_ID.SHIFT)){
+        if (this.constroller.IsPressed(INPUT_ID.SHIFT)){
             cursor = true;
             this.stage.SetCursorPos(transform.position);
-            this.stage.SetCursorVisible(cursor);
+            // this.stage.AddObject();
+        }
+
+        if (this.constroller.IsJustPressed(INPUT_ID.ADD)){
+            this.stage.SetCursorPos(transform.position);
             this.stage.AddObject();
         }
 
+        this.stage.SetCursorVisible(cursor);
 
         if (this.constroller.IsJustPressed(INPUT_ID.SPACE)){
             this.stage.UpdatePath();

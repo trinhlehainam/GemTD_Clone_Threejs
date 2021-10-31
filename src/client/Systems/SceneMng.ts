@@ -55,12 +55,16 @@ export default class SceneMng {
 
         if (this.scene.IsChangeSceneEnable()) {
             this.scene.ChangeScene(this.scene).then(
+                // Wait until change scene set up complele
+                // Then start loop again
                 scene =>  {
                     this.scene = scene;
                     this.Run();
                     LoadMng.EnableLoadingScene(false);
                 }
             );
+            
+            // Stop loop and wait until change scene set up is done
             this.Stop();
             LoadMng.EnableLoadingScene(true);
             return;

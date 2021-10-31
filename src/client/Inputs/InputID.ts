@@ -4,7 +4,9 @@ enum INPUT_ID {
     UP,
     DOWN,
     SPACE,
-    SHIFT
+    SHIFT,
+    ADD,
+    DELETE
 }
 
 export default INPUT_ID;

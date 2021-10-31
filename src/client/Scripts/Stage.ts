@@ -6,16 +6,16 @@ import TileMap2Pathfinding from '../Utils/TileMap2Pathfinding'
 
 // TODO: Refactoring function name
 // TODO: Refactoring convert player tile pos
-// TODO: tilemap helper class
-// TODO: tilemap pathfinding class
+// TODO: Create object base class (BLOCK, TOWER)
 export default class Stage {
+    // map
     private map: TileMap2
+    private tiles: Array<boolean>
+    private objects: Array<THREE.Mesh>
+    private pathfinder: TileMap2Pathfinding 
+    private goals: Array<THREE.Vector3>
 
     private scene: THREE.Scene
-    private objects: Array<THREE.Mesh>
-
-    private pathfinder: TileMap2Pathfinding 
-
     private cursor: THREE.Mesh
     private camera: THREE.Camera
 
@@ -26,6 +26,8 @@ export default class Stage {
         this.camera = camera;
 
         this.map = new TileMap2(new THREE.Vector2(38, 38), new THREE.Vector2(5, 5));
+        this.tiles = Array<boolean>(this.map.tileSize.x * this.map.tileSize.y).fill(false);
+        this.objects = new Array(this.tiles.length);
 
         const groundGeo = new THREE.PlaneGeometry(
             this.map.tileNum.x * this.map.tileSize.x, this.map.tileNum.y * this.map.tileSize.y,
@@ -72,15 +74,15 @@ export default class Stage {
 
         this.pathfinder = new TileMap2Pathfinding(ground, this.map);
         
-        const goals = new Array<THREE.Vector3>(6);
-        goals[0] = (this.map.getWorldPosFromTilePos(4, 18));
-        goals[1] = (this.map.getWorldPosFromTilePos(32, 18));
-        goals[2] = (this.map.getWorldPosFromTilePos(32, 4));
-        goals[3] = (this.map.getWorldPosFromTilePos(18, 4));
-        goals[4] = (this.map.getWorldPosFromTilePos(18, 32));
-        goals[5] = (this.map.getWorldPosFromTilePos(32, 32));
+        this.goals = new Array<THREE.Vector3>(6);
+        this.goals[0] = (this.map.getWorldPosFromTilePos(4, 18));
+        this.goals[1] = (this.map.getWorldPosFromTilePos(32, 18));
+        this.goals[2] = (this.map.getWorldPosFromTilePos(32, 4));
+        this.goals[3] = (this.map.getWorldPosFromTilePos(18, 4));
+        this.goals[4] = (this.map.getWorldPosFromTilePos(18, 32));
+        this.goals[5] = (this.map.getWorldPosFromTilePos(32, 32));
 
-        goals.forEach(
+        this.goals.forEach(
             goal => {
                 const debugSphere = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({color: 0xff0000}));
                 debugSphere.position.copy(this.map.getWorldPosFromVector3(goal));
@@ -88,43 +90,73 @@ export default class Stage {
             }
         )
 
-        this.pathfinder.goals = [...goals];
+        const goalTilePos = this.goals.map(goal => this.map.getTilePosFromVector3(goal));
+        goalTilePos.forEach(pos => this.tiles[pos.y * this.map.tileNum.x + pos.x] = true); 
+
+        this.pathfinder.goals = [...this.goals];
 
         const box = new THREE.Mesh(new THREE.BoxGeometry(this.map.tileSize.x, this.map.tileSize.x * 2, this.map.tileSize.y), new THREE.MeshNormalMaterial());
         this.box = box.clone();
-        this.objects = [];
-        for (let i = 0; i < 5; ++i){
-            const clone = box.clone();
-            clone.position.copy(this.map.getWorldPosFromTilePos(i, 4));
-            clone.updateMatrix();
-            this.objects.push(clone);
-        }
-        console.log(this.objects); 
 
-        this.pathfinder.init('map', [...this.objects]);
-        this.objects.forEach(box => {
-            box.scale.multiplyScalar(0.75);
-        })
-        
-        this.objects.forEach(obj => this.scene.add(obj));
+        this.pathfinder.init('map');
         this.GeneratePaths();
-        
     }
 
     AddObject(): void {
+        if (!this.IsTileEmpty()) return;
         const clone = this.box.clone();
         clone.position.copy(this.cursor.position).setY(0);
         clone.scale.multiplyScalar(0.75);
         clone.updateMatrix();
         this.objects.push(clone);
+        const cursorTilePos = this.GetCursorTilePos();
+        if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
+        this.objects.forEach(box => {
+            box.scale.divideScalar(0.75);
+        })
+        const flag = this.pathfinder.updateSubMesh('map', this.objects.filter(obj => obj !== undefined));
+        this.objects.forEach(box => {
+            box.scale.multiplyScalar(0.75);
+        })
+        if (this.pathfinder.debugLines)
+            this.scene.add(this.pathfinder.debugLines);
+        this.SetTile(cursorTilePos, flag);
+        console.log(flag);
+        if (!flag){
+            this.objects.pop();
+            return;
+        }
         this.scene.add(clone);
+    }
+
+    RemoveObject(): void {
+        if (this.IsTileEmpty()) return;
+    }
+
+    GetTile(tilePos: THREE.Vector2): boolean {
+        return this.tiles[tilePos.y * this.map.tileNum.x + tilePos.x];
+    }
+
+    IsTileEmpty(): boolean {
+        const cursorTilePos = this.GetCursorTilePos();
+        return !this.tiles[(cursorTilePos.y * this.map.tileNum.x) + cursorTilePos.x];
+    }
+
+    private SetTile(tilePos: THREE.Vector2, flag: boolean): void {
+        this.tiles[(tilePos.y * this.map.tileNum.x) + tilePos.x] = flag;
+    }
+
+    private GetCursorTilePos(): THREE.Vector2 {
+        const pos = this.cursor.position.clone().setY(0);
+        const tilePos = this.map.getTilePosFromVector3(pos);
+        return tilePos;
     }
 
     UpdatePath(): void {
         this.objects.forEach(box => {
             box.scale.divideScalar(0.75);
         })
-        this.pathfinder.init('map', [...this.objects]);
+        this.pathfinder.init('map', this.objects.filter(obj => obj !== undefined));
         this.objects.forEach(box => {
             box.scale.multiplyScalar(0.75);
         })
@@ -142,6 +174,9 @@ export default class Stage {
         this.cursor.position.copy(pos)
         .divideScalar(this.map.tileSize.x).floor().multiplyScalar(this.map.tileSize.x)
         .addScalar(this.map.tileSize.x/2);
+        const isEmpty = this.IsTileEmpty();
+        const color: number = isEmpty ? 0x00ff00 : 0xff0000;
+        (this.cursor.material as THREE.MeshBasicMaterial).color = new THREE.Color(color);
     }
 
     SetCursorVisible(flag: boolean): void {

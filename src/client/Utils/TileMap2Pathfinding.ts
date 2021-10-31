@@ -44,8 +44,6 @@ export default class TileMap2Pathfinding {
         this.navMesh = subMesh.geometry;
 
         this.groupIDs = new Array<number>(this.goals.length);
-        // this.pathfinding = new Pathfinding();
-        this.ZONE = 'map';
         const zone = Pathfinding.createZone(this.navMesh);
         console.log(zone);
         this.pathfinding.setZoneData(this.ZONE, zone);
@@ -54,16 +52,35 @@ export default class TileMap2Pathfinding {
         console.log(this.groupIDs);
     }
 
-    generatePaths(): void {
+    updateSubMesh(zoneName: string, subObjects: Array<Mesh>): boolean {
+        const tmpNavMesh = this.navMesh.clone();  
+        const tmpPaths = [...this.paths];
+        const tmpDebugPaths = this.debugLines?.clone();
+        this.init(zoneName, subObjects);
+        const ret = this.generatePaths();
+        if (!ret) {
+            this.navMesh = tmpNavMesh;
+            this.paths = tmpPaths;
+            this.debugLines = tmpDebugPaths;
+            const zone = Pathfinding.createZone(this.navMesh);
+            console.log(zone);
+            this.pathfinding.setZoneData(this.ZONE, zone);
+            for (const [idx, val] of this.goals.entries())
+                this.groupIDs[idx] = this.pathfinding.getGroup(this.ZONE, val) as number;
+        }
+        return ret;
+    }
+
+    generatePaths(): boolean {
         this.debugLines = undefined;
         for (const [i, val] of this.goals.entries()){
             const startPos = i === 0 ? this.map.getWorldPosFromTilePos(0, 0) : this.goals[i-1];
             const targetPos = this.goals[i]; 
             const paths = this.pathfinding.findPath(
                 startPos, targetPos, this.ZONE, this.groupIDs[i]) as Array<Vector3>;
-            if (!paths) return;
+            if (!paths) return false;
             this.paths[i] = paths;
-            if (!this.paths.length) return;
+            if (!this.paths.length) return false;
             //
 
             const points = [startPos];
@@ -88,5 +105,6 @@ export default class TileMap2Pathfinding {
             this.paths[i].forEach(path => path.setY(0));
         }
         console.log(this.debugLines);
+        return true;
     }
 }
