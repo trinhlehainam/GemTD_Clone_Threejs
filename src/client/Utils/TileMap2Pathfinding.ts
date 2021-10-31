@@ -37,7 +37,7 @@ export default class TileMap2Pathfinding {
         let subMesh = new Mesh(this.baseMesh);
         subObjects.forEach(box => {
             const clone = box.clone();
-            clone.scale.multiplyScalar(1.0);
+            // clone.scale.multiplyScalar(1.0);
             clone.updateMatrix();
             subMesh = CSG.subtract(subMesh, clone);
         });
