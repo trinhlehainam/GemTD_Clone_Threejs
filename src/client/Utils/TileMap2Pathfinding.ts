@@ -15,7 +15,6 @@ export default class TileMap2Pathfinding {
     public starts: Array<Vector2>
     public goals: Array<Vector2>
 
-
     // Debug
     public debugLines?: Line
 
@@ -28,9 +27,8 @@ export default class TileMap2Pathfinding {
 
         this.baseGrid = new PF.Grid(this.map.tileNum.x, this.map.tileNum.y);
         this.grid = this.baseGrid.clone();
-        this.finder = new PF.AStarFinder({
+        this.finder = new PF.BiDijkstraFinder({
             diagonalMovement: PF.DiagonalMovement.OnlyWhenNoObstacles,
-            weight: 0.5
         });
     }
 
@@ -39,7 +37,7 @@ export default class TileMap2Pathfinding {
         blockGrids.forEach(grid => this.grid.setWalkableAt(grid.x, grid.y, false));
     }
 
-    updateSubMeshes(blockGrids: Array<Vector2>): boolean {
+    updateBlockGrid(blockGrids: Array<Vector2>): boolean {
         const tmpGrid = this.grid.clone();
         const tmpPaths = [...this.paths];
         const tmpDebugPaths = this.debugLines?.clone();
@@ -106,7 +104,6 @@ export default class TileMap2Pathfinding {
             });
             this.paths[i].forEach(path => path.setY(0));
         }
-        console.log(this.debugLines);
         return true;
     }
 }
