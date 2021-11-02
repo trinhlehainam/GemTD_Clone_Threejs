@@ -11,7 +11,7 @@ export default class TileMap2 {
         this.mapPos = new Vector2();
     }
     
-    GetWorldPosFromVec3(pos: Vector3, tilePortion: number = 0.5): Vector3 {
+    getWorldPosFromVec3(pos: Vector3, tilePortion: number = 0.5): Vector3 {
         let ret = pos.clone();
         const tmpY = ret.y;
         return ret
@@ -19,10 +19,10 @@ export default class TileMap2 {
            .addScalar(this.tileSize.x * tilePortion).setY(tmpY);
     }
 
-    GetWorldPosFromTileIndex(tilePos: Vector2): Vector3;
-    GetWorldPosFromTileIndex(x: number, y: number): Vector3;
+    getWorldPosFromTileIndex(tilePos: Vector2): Vector3;
+    getWorldPosFromTileIndex(x: number, y: number): Vector3;
 
-    GetWorldPosFromTileIndex(a: Vector2 | number, b?: number): Vector3{
+    getWorldPosFromTileIndex(a: Vector2 | number, b?: number): Vector3{
         let tmpTilePos = a instanceof Vector2 ? a.clone() : new Vector2(a, b);
         tmpTilePos.sub(this.tileNum.clone().divideScalar(2)).add(this.mapPos);
         let ret = new Vector3(tmpTilePos.x*this.tileSize.x, 0, tmpTilePos.y*this.tileSize.y);

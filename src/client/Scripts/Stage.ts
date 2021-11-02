@@ -83,7 +83,7 @@ export default class Stage {
         this.pathfinder.goals.forEach(
             goal => {
                 const debugSphere = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({color: 0xff0000}));
-                debugSphere.position.copy(this.map.GetWorldPosFromTileIndex(goal));
+                debugSphere.position.copy(this.map.getWorldPosFromTileIndex(goal));
                 this.scene.add(debugSphere);
             }
         )
@@ -111,7 +111,6 @@ export default class Stage {
         console.log(this.GetCursorMapPos());
         const cursorTileIndex = this.GetTileIndex(this.GetCursorMapPos());
         this.blockGrids[cursorTileIndex] = true;
-        if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
         const gridIndices: Array<number> = [];
         for (const [idx, val] of this.blockGrids.entries())
             if (val === true)
@@ -120,8 +119,6 @@ export default class Stage {
         console.log(this.blockGrids.filter(grid => grid === true));
         const flag = this.pathfinder.updateBlockGrid(
             gridIndices.map(idx => this.map.getTileIndexFromNumIndex(idx)));
-        if (this.pathfinder.debugLines)
-            this.scene.add(this.pathfinder.debugLines);
         if (!flag){
             this.blockGrids[cursorTileIndex] = false;
         }
@@ -132,15 +129,12 @@ export default class Stage {
     CheckValidTile(): boolean {
         const cursorTileIndex = this.GetTileIndex(this.GetCursorMapPos());
         this.blockGrids[cursorTileIndex] = true;
-        if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
         const gridIndices: Array<number> = [];
         for (const [idx, val] of this.blockGrids.entries())
             if (val === true)
                 gridIndices.push(idx);
         const flag = this.pathfinder.checkValidGrid(
             gridIndices.map(idx => this.map.getTileIndexFromNumIndex(idx)));
-        if (this.pathfinder.debugLines)
-            this.scene.add(this.pathfinder.debugLines);
         this.blockGrids[cursorTileIndex] = false;
         return flag;
     }
@@ -169,7 +163,6 @@ export default class Stage {
     }
     
     private GeneratePaths(): void {
-        if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
         const gridIndices: Array<number> = [];
         for (const [idx, val] of this.blockGrids.entries())
             if (val === true)
@@ -177,8 +170,6 @@ export default class Stage {
         console.log(gridIndices); 
         this.pathfinder.updateBlockGrid(
             gridIndices.map(idx => this.map.getTileIndexFromNumIndex(idx)));
-        if (this.pathfinder.debugLines)
-            this.scene.add(this.pathfinder.debugLines);
     }
 
     SetCursorPos(pos: THREE.Vector3): void {
