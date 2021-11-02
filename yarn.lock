@@ -1074,6 +1074,11 @@
   dependencies:
     "function-bind" "^1.1.1"
 
+"heap@0.2.5":
+  "integrity" "sha1-cTtlWQ68xA/L7q9V6FFpQJKzmvE="
+  "resolved" "https://registry.npmjs.org/heap/-/heap-0.2.5.tgz"
+  "version" "0.2.5"
+
 "hpack.js@^2.1.6":
   "integrity" "sha1-h3dMCUnlE/QuhFdbPEVoH63ioLI="
   "resolved" "https://registry.npmjs.org/hpack.js/-/hpack.js-2.1.6.tgz"
@@ -1702,6 +1707,13 @@
   "integrity" "sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw=="
   "resolved" "https://registry.npmjs.org/path-type/-/path-type-4.0.0.tgz"
   "version" "4.0.0"
+
+"pathfinding@^0.4.18":
+  "integrity" "sha1-qZkPb6IrfvGW5WUbBJFlQDoEX+g="
+  "resolved" "https://registry.npmjs.org/pathfinding/-/pathfinding-0.4.18.tgz"
+  "version" "0.4.18"
+  dependencies:
+    "heap" "0.2.5"
 
 "picocolors@^1.0.0":
   "integrity" "sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ=="

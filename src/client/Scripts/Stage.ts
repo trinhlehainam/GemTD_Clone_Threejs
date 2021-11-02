@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import {CSG} from 'three-csg-ts'
 
 import TileMap2 from '../Utils/TileMap2'
 import TileMap2Pathfinding from '../Utils/TileMap2Pathfinding'
@@ -13,7 +12,6 @@ export default class Stage {
     private objects: Array<THREE.Mesh>
     private subMeshes: Array<THREE.Mesh>
     private pathfinder: TileMap2Pathfinding 
-    private goals: Array<THREE.Vector3>
 
     private scene: THREE.Scene
     private cursor: THREE.Mesh
@@ -72,30 +70,27 @@ export default class Stage {
         this.cursor = new THREE.Mesh(cursorGeo, cursorMat);
         this.scene.add(this.cursor);
 
-        this.pathfinder = new TileMap2Pathfinding(ground, this.map);
+        this.pathfinder = new TileMap2Pathfinding(this.map);
         
-        this.goals = new Array<THREE.Vector3>(6);
-        this.goals[0] = (this.map.getWorldPosFromTilePos(4, 18));
-        this.goals[1] = (this.map.getWorldPosFromTilePos(32, 18));
-        this.goals[2] = (this.map.getWorldPosFromTilePos(32, 4));
-        this.goals[3] = (this.map.getWorldPosFromTilePos(18, 4));
-        this.goals[4] = (this.map.getWorldPosFromTilePos(18, 32));
-        this.goals[5] = (this.map.getWorldPosFromTilePos(32, 32));
+        this.pathfinder.goals = new Array<THREE.Vector2>(6);
+        this.pathfinder.goals[0] = new THREE.Vector2(4, 18);
+        this.pathfinder.goals[1] = new THREE.Vector2(32, 18);
+        this.pathfinder.goals[2] = new THREE.Vector2(32, 4);
+        this.pathfinder.goals[3] = new THREE.Vector2(18, 4);
+        this.pathfinder.goals[4] = new THREE.Vector2(18, 32);
+        this.pathfinder.goals[5] = new THREE.Vector2(32, 32);
 
-        this.goals.forEach(
+        this.pathfinder.goals.forEach(
             goal => {
                 const debugSphere = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({color: 0xff0000}));
-                debugSphere.position.copy(this.map.getWorldPosFromVector3(goal));
+                debugSphere.position.copy(this.map.getWorldPosFromTilePos(goal));
                 this.scene.add(debugSphere);
             }
         )
 
-        this.pathfinder.goals = [...this.goals];
-
         const box = new THREE.Mesh(new THREE.BoxGeometry(this.map.tileSize.x, this.map.tileSize.x * 2, this.map.tileSize.y), new THREE.MeshNormalMaterial());
         this.box = box.clone();
 
-        this.pathfinder.init('map');
         this.GeneratePaths();
     }
 
@@ -118,8 +113,9 @@ export default class Stage {
         if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
         this.subMeshes.forEach(box => {
             box.scale.divideScalar(0.75);
-        })
-        const flag = this.pathfinder.updateSubMeshes('map', this.subMeshes.filter(obj => obj !== undefined));
+        });
+        const validMeshes = this.subMeshes.filter(obj => obj !== undefined);
+        const flag = this.pathfinder.updateSubMeshes(validMeshes.map(mesh => this.map.getTilePosFromVector3(mesh.position)));
         this.subMeshes.forEach(box => {
             box.scale.multiplyScalar(0.75);
         })
@@ -138,8 +134,9 @@ export default class Stage {
         if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
         this.subMeshes.forEach(box => {
             box.scale.divideScalar(0.75);
-        })
-        const flag = this.pathfinder.checkValidSubMeshes('map', this.subMeshes.filter(obj => obj !== undefined));
+        });
+        const validMeshes = this.subMeshes.filter(obj => obj !== undefined);
+        const flag = this.pathfinder.updateSubMeshes(validMeshes.map(mesh => this.map.getTilePosFromVector3(mesh.position)));
         this.subMeshes.forEach(box => {
             box.scale.multiplyScalar(0.75);
         })
