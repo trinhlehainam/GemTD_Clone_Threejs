@@ -73,12 +73,23 @@ export default class Stage {
         this.pathfinder = new TileMap2Pathfinding(this.map);
         
         this.pathfinder.goals = new Array<THREE.Vector2>(6);
+        this.pathfinder.starts = new Array<THREE.Vector2>(6);
         this.pathfinder.goals[0] = new THREE.Vector2(4, 18);
         this.pathfinder.goals[1] = new THREE.Vector2(32, 18);
         this.pathfinder.goals[2] = new THREE.Vector2(32, 4);
         this.pathfinder.goals[3] = new THREE.Vector2(18, 4);
         this.pathfinder.goals[4] = new THREE.Vector2(18, 32);
         this.pathfinder.goals[5] = new THREE.Vector2(32, 32);
+
+        this.pathfinder.starts[0] = new THREE.Vector2(0, 0);
+        for (const i of this.pathfinder.goals.keys()){
+            if (i === 0){
+                this.pathfinder.starts[i] = new THREE.Vector2(0, 0);
+                continue;
+            }
+            this.pathfinder.starts[i] = this.pathfinder.goals[i-1]
+        }
+        console.log(this.pathfinder.starts);
 
         this.pathfinder.goals.forEach(
             goal => {
@@ -91,7 +102,6 @@ export default class Stage {
         const box = new THREE.Mesh(new THREE.BoxGeometry(this.map.tileSize.x, this.map.tileSize.x * 2, this.map.tileSize.y), new THREE.MeshNormalMaterial());
         this.box = box.clone();
 
-        this.GeneratePaths();
     }
 
     AddObject(): void {
@@ -100,47 +110,16 @@ export default class Stage {
         clone.position.copy(this.cursor.position).setY(0);
         clone.scale.multiplyScalar(0.75);
         clone.updateMatrix();
-        const isValid = this.AddBlockGrid();
-        if (!isValid) return;
         const cursorTilePos = this.GetCursorMapPos();
+        const isValid = this.pathfinder.checkTileAndUpdatePaths(cursorTilePos);
+        if (!isValid) return;
         this.objects[this.GetTileIndex(cursorTilePos)] = clone;
         this.scene.add(clone);
     }
 
-    AddBlockGrid(): boolean {
-        console.log(this.GetCursorMapPos());
-        const cursorTileIndex = this.GetTileIndex(this.GetCursorMapPos());
-        this.blockGrids[cursorTileIndex] = true;
-        const gridIndices: Array<number> = [];
-        for (const [idx, val] of this.blockGrids.entries())
-            if (val === true)
-                gridIndices.push(idx);
-        console.log(gridIndices);
-        console.log(this.blockGrids.filter(grid => grid === true));
-        const flag = this.pathfinder.updateBlockGrid(
-            gridIndices.map(idx => this.map.getTileIndexFromNumIndex(idx)));
-        if (!flag){
-            this.blockGrids[cursorTileIndex] = false;
-        }
-        console.log('Add flag :' + flag);
-        return flag;
-    }
-
     CheckValidTile(): boolean {
-        const cursorTileIndex = this.GetTileIndex(this.GetCursorMapPos());
-        this.blockGrids[cursorTileIndex] = true;
-        const gridIndices: Array<number> = [];
-        for (const [idx, val] of this.blockGrids.entries())
-            if (val === true)
-                gridIndices.push(idx);
-        const flag = this.pathfinder.checkValidGrid(
-            gridIndices.map(idx => this.map.getTileIndexFromNumIndex(idx)));
-        this.blockGrids[cursorTileIndex] = false;
-        return flag;
-    }
-
-    UpdatePaths(): void {
-        this.GeneratePaths(); 
+        const isValid = this.pathfinder.precheckTile(this.GetCursorMapPos());
+        return isValid;
     }
 
     RemoveObject(): void {
@@ -162,16 +141,6 @@ export default class Stage {
         return tilePos;
     }
     
-    private GeneratePaths(): void {
-        const gridIndices: Array<number> = [];
-        for (const [idx, val] of this.blockGrids.entries())
-            if (val === true)
-                gridIndices.push(idx);
-        console.log(gridIndices); 
-        this.pathfinder.updateBlockGrid(
-            gridIndices.map(idx => this.map.getTileIndexFromNumIndex(idx)));
-    }
-
     SetCursorPos(pos: THREE.Vector3): void {
         this.cursor.position.copy(pos)
         .divideScalar(this.map.tileSize.x).floor().multiplyScalar(this.map.tileSize.x)
