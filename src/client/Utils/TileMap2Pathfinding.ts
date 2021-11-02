@@ -76,12 +76,12 @@ export default class TileMap2Pathfinding {
             if (!paths.length) return false;
             this.paths[i] = [];
             paths.forEach(path => {
-                const pos = this.map.getWorldPosFromTilePos(path[0], path[1]);
+                const pos = this.map.GetWorldPosFromTileIndex(path[0], path[1]);
                 this.paths[i].push(new Vector2(pos.x, pos.z)); 
             });
             if (!this.paths.length) return false;
 
-            const startPos = this.map.getWorldPosFromTilePos(startGrid);
+            const startPos = this.map.GetWorldPosFromTileIndex(startGrid);
             const points = [new Vector2(startPos.x, startPos.z)];
             this.paths[i].forEach((vertex) => points.push(vertex.clone()));
             const lineGeo = new BufferGeometry().setFromPoints(points);

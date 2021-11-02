@@ -133,12 +133,13 @@ export default class Player {
         if (this.constroller.IsPressed(INPUT_ID.SHIFT)){
             cursor = true;
             this.stage.SetCursorPos(transform.position);
-            // this.stage.AddObject();
+            this.stage.CheckTile();
         }
 
         if (this.constroller.IsJustPressed(INPUT_ID.ADD)){
             this.stage.SetCursorPos(transform.position);
             this.stage.AddObject();
+            this.stage.CheckTile();
         }
 
         this.stage.SetCursorVisible(cursor);

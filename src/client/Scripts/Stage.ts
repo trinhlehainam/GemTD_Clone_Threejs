@@ -83,7 +83,7 @@ export default class Stage {
         this.pathfinder.goals.forEach(
             goal => {
                 const debugSphere = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({color: 0xff0000}));
-                debugSphere.position.copy(this.map.getWorldPosFromTilePos(goal));
+                debugSphere.position.copy(this.map.GetWorldPosFromTileIndex(goal));
                 this.scene.add(debugSphere);
             }
         )
@@ -119,7 +119,7 @@ export default class Stage {
         console.log(gridIndices);
         console.log(this.blockGrids.filter(grid => grid === true));
         const flag = this.pathfinder.updateBlockGrid(
-            gridIndices.map(idx => this.GetVecFromTileIndex(idx)));
+            gridIndices.map(idx => this.map.getTileIndexFromNumIndex(idx)));
         if (this.pathfinder.debugLines)
             this.scene.add(this.pathfinder.debugLines);
         if (!flag){
@@ -138,7 +138,7 @@ export default class Stage {
             if (val === true)
                 gridIndices.push(idx);
         const flag = this.pathfinder.checkValidGrid(
-            gridIndices.map(idx => this.GetVecFromTileIndex(idx)));
+            gridIndices.map(idx => this.map.getTileIndexFromNumIndex(idx)));
         if (this.pathfinder.debugLines)
             this.scene.add(this.pathfinder.debugLines);
         this.blockGrids[cursorTileIndex] = false;
@@ -157,10 +157,6 @@ export default class Stage {
         return tilePos.y * this.map.tileNum.x + tilePos.x;
     }
 
-    GetVecFromTileIndex(idx: number): THREE.Vector2 {
-        return new THREE.Vector2(idx % this.map.tileNum.x, Math.floor(idx / this.map.tileNum.x));
-    }
-
     IsTileEmpty(): boolean {
         const cursorTilePos = this.GetCursorMapPos();
         return !this.objects[this.GetTileIndex(cursorTilePos)];
@@ -168,7 +164,7 @@ export default class Stage {
 
     private GetCursorMapPos(): THREE.Vector2 {
         const pos = this.cursor.position.clone().setY(0);
-        const tilePos = this.map.getTilePosFromVector3(pos);
+        const tilePos = this.map.getTileIndexFromVec3(pos);
         return tilePos;
     }
     
@@ -180,7 +176,7 @@ export default class Stage {
                 gridIndices.push(idx);
         console.log(gridIndices); 
         this.pathfinder.updateBlockGrid(
-            gridIndices.map(idx => this.GetVecFromTileIndex(idx)));
+            gridIndices.map(idx => this.map.getTileIndexFromNumIndex(idx)));
         if (this.pathfinder.debugLines)
             this.scene.add(this.pathfinder.debugLines);
     }
@@ -189,14 +185,26 @@ export default class Stage {
         this.cursor.position.copy(pos)
         .divideScalar(this.map.tileSize.x).floor().multiplyScalar(this.map.tileSize.x)
         .addScalar(this.map.tileSize.x/2);
+    }
+
+    CheckTile(): void {
+        (this.cursor.material as THREE.MeshBasicMaterial).color = new THREE.Color(0x00ff00);
         let isEmpty = this.IsTileEmpty();
         const clone = this.box.clone();
         clone.position.copy(this.cursor.position).setY(0);
         clone.scale.multiplyScalar(0.75);
         clone.updateMatrix();
-        const isValid = this.AddBlockGrid();
-        const color: number = isEmpty && isValid ? 0x00ff00 : 0xff0000;
-        (this.cursor.material as THREE.MeshBasicMaterial).color = new THREE.Color(color);
+        if (!isEmpty){
+            this.SetCursorColor();
+            return;
+        }
+        const isValid = this.CheckValidTile();
+        if (!isValid)
+            this.SetCursorColor();
+    }
+
+    SetCursorColor(): void{
+        (this.cursor.material as THREE.MeshBasicMaterial).color = new THREE.Color(0xff0000);
     }
 
     SetCursorVisible(flag: boolean): void {
