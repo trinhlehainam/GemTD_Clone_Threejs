@@ -28,10 +28,14 @@ export default class TileMap2Pathfinding {
 
         this.baseGrid = new PF.Grid(this.map.tileNum.x, this.map.tileNum.y);
         this.grid = this.baseGrid.clone();
-        this.finder = new PF.AStarFinder();
+        this.finder = new PF.AStarFinder({
+            diagonalMovement: PF.DiagonalMovement.OnlyWhenNoObstacles,
+            weight: 0.5
+        });
     }
 
     setBlockGrids(blockGrids: Array<Vector2>){
+        this.grid = this.baseGrid.clone();
         blockGrids.forEach(grid => this.grid.setWalkableAt(grid.x, grid.y, false));
     }
 
@@ -50,7 +54,7 @@ export default class TileMap2Pathfinding {
         return ret;
     }
 
-    checkValidSubMeshes(blockGrids: Array<Vector2>): boolean {
+    checkValidGrid(blockGrids: Array<Vector2>): boolean {
         const tmpGrid = this.grid.clone();
         const tmpPaths = [...this.paths];
         const tmpDebugPaths = this.debugLines?.clone();
@@ -71,24 +75,28 @@ export default class TileMap2Pathfinding {
             const grid = this.grid.clone();
             const paths = this.finder.findPath(
                 startGrid.x, startGrid.y, destGrid.x, destGrid.y, grid);
-            if (!paths) return false;
-            delete this.paths[i];
+            if (!paths.length) return false;
             this.paths[i] = [];
-            paths.forEach(path => this.paths[i].push(new Vector2(path[0], path[1])));
+            paths.forEach(path => {
+                const pos = this.map.getWorldPosFromTilePos(path[0], path[1]);
+                this.paths[i].push(new Vector2(pos.x, pos.z)); 
+            });
             if (!this.paths.length) return false;
 
-            const points = [startGrid];
+            const startPos = this.map.getWorldPosFromTilePos(startGrid);
+            const points = [new Vector2(startPos.x, startPos.z)];
             this.paths[i].forEach((vertex) => points.push(vertex.clone()));
             const lineGeo = new BufferGeometry().setFromPoints(points);
             const lineMat = new LineBasicMaterial({color: 0xff0000, linewidth:2});
             const line = new Line(lineGeo, lineMat);
+            line.geometry.rotateX(Math.PI/2);
 
             if(!this.debugLines)
                 this.debugLines = line
             else
                 this.debugLines.add(line);
 
-            const debugPaths = [startGrid].concat(this.paths[i]);
+            const debugPaths = [new Vector2(startPos.x, startPos.z)].concat(this.paths[i]);
             debugPaths.forEach(vertex => {
                 const geometry = new SphereGeometry(0.3);
                 const mat = new MeshBasicMaterial({color: 0xff0000});

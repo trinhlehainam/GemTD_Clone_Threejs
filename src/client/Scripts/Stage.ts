@@ -10,7 +10,7 @@ export default class Stage {
     // map
     private map: TileMap2
     private objects: Array<THREE.Mesh>
-    private subMeshes: Array<THREE.Mesh>
+    private blockGrids: Array<number>
     private pathfinder: TileMap2Pathfinding 
 
     private scene: THREE.Scene
@@ -25,7 +25,7 @@ export default class Stage {
 
         this.map = new TileMap2(new THREE.Vector2(38, 38), new THREE.Vector2(5, 5));
         this.objects = new Array(this.map.tileSize.x * this.map.tileSize.y);
-        this.subMeshes = new Array(this.map.tileSize.x * this.map.tileSize.y);
+        this.blockGrids = Array<number>(this.map.tileSize.x * this.map.tileSize.y).fill(0);
 
         const groundGeo = new THREE.PlaneGeometry(
             this.map.tileNum.x * this.map.tileSize.x, this.map.tileNum.y * this.map.tileSize.y,
@@ -100,50 +100,44 @@ export default class Stage {
         clone.position.copy(this.cursor.position).setY(0);
         clone.scale.multiplyScalar(0.75);
         clone.updateMatrix();
-        const isValid = this.AddSubMeshes(clone);
+        const isValid = this.AddBlockGrid();
         if (!isValid) return;
-        const cursorTilePos = this.GetCursorTilePos();
+        const cursorTilePos = this.GetCursorMapPos();
         this.objects[this.GetTileIndex(cursorTilePos)] = clone;
         this.scene.add(clone);
     }
 
-    AddSubMeshes(object: THREE.Mesh): boolean {
-        const cursorTilePos = this.GetCursorTilePos();
-        this.subMeshes[this.GetTileIndex(cursorTilePos)] = object;
+    AddBlockGrid(): boolean {
+        const cursorTileIndex = this.GetTileIndex(this.GetCursorMapPos());
+        this.blockGrids[cursorTileIndex] = cursorTileIndex;
         if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
-        this.subMeshes.forEach(box => {
-            box.scale.divideScalar(0.75);
-        });
-        const validMeshes = this.subMeshes.filter(obj => obj !== undefined);
-        const flag = this.pathfinder.updateSubMeshes(validMeshes.map(mesh => this.map.getTilePosFromVector3(mesh.position)));
-        this.subMeshes.forEach(box => {
-            box.scale.multiplyScalar(0.75);
-        })
+        const gridIndices = this.blockGrids.filter(grid => grid !== 0);
+        console.log(gridIndices);
+        const flag = this.pathfinder.updateSubMeshes(
+            gridIndices.map(idx => new THREE.Vector2(
+                idx % this.map.tileNum.x, Math.round(idx / this.map.tileNum.x))));
         if (this.pathfinder.debugLines)
             this.scene.add(this.pathfinder.debugLines);
         console.log(flag);
         if (!flag){
-            delete this.subMeshes[this.GetTileIndex(cursorTilePos)];
+            this.blockGrids[cursorTileIndex] = 0;
         }
         return flag;
     }
 
-    CheckValidTile(object: THREE.Mesh): boolean {
-        const cursorTilePos = this.GetCursorTilePos();
-        this.subMeshes[this.GetTileIndex(cursorTilePos)] = object;
+    CheckValidTile(): boolean {
+        console.log(this.GetCursorMapPos())
+        const cursorTileIndex = this.GetTileIndex(this.GetCursorMapPos());
+        this.blockGrids[cursorTileIndex] = cursorTileIndex;
         if (this.pathfinder.debugLines) this.scene.remove(this.pathfinder.debugLines);
-        this.subMeshes.forEach(box => {
-            box.scale.divideScalar(0.75);
-        });
-        const validMeshes = this.subMeshes.filter(obj => obj !== undefined);
-        const flag = this.pathfinder.updateSubMeshes(validMeshes.map(mesh => this.map.getTilePosFromVector3(mesh.position)));
-        this.subMeshes.forEach(box => {
-            box.scale.multiplyScalar(0.75);
-        })
+        const gridIndices = this.blockGrids.filter(grid => grid !== 0);
+        const flag = this.pathfinder.checkValidGrid(
+            gridIndices.map(idx => new THREE.Vector2(
+                idx % this.map.tileNum.x, Math.floor(idx / this.map.tileNum.x))));
         if (this.pathfinder.debugLines)
             this.scene.add(this.pathfinder.debugLines);
         console.log(flag);
-        delete this.subMeshes[this.GetTileIndex(cursorTilePos)];
+        this.blockGrids[cursorTileIndex] = 0;
         return flag;
     }
 
@@ -156,12 +150,12 @@ export default class Stage {
     }
 
     IsTileEmpty(): boolean {
-        const cursorTilePos = this.GetCursorTilePos();
+        const cursorTilePos = this.GetCursorMapPos();
         console.log(this.objects[this.GetTileIndex(cursorTilePos)]);
         return !this.objects[this.GetTileIndex(cursorTilePos)];
     }
 
-    private GetCursorTilePos(): THREE.Vector2 {
+    private GetCursorMapPos(): THREE.Vector2 {
         const pos = this.cursor.position.clone().setY(0);
         const tilePos = this.map.getTilePosFromVector3(pos);
         return tilePos;
@@ -184,7 +178,7 @@ export default class Stage {
         clone.position.copy(this.cursor.position).setY(0);
         clone.scale.multiplyScalar(0.75);
         clone.updateMatrix();
-        const isValid = this.CheckValidTile(clone);
+        const isValid = this.CheckValidTile();
         const color: number = isEmpty && isValid ? 0x00ff00 : 0xff0000;
         (this.cursor.material as THREE.MeshBasicMaterial).color = new THREE.Color(color);
     }

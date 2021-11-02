@@ -34,7 +34,7 @@ export default class TileMap2 {
     getTilePosFromVector3(pos: Vector3): Vector2 {
         const scalarVec = new Vector3(this.tileSize.x, 1, this.tileSize.y);
         const tmpPos = pos.clone();
-        tmpPos.divide(scalarVec).round().multiply(scalarVec);
+        tmpPos.divide(scalarVec).floor().multiply(scalarVec);
         const ret = new Vector2(
             tmpPos.x / this.tileSize.x, tmpPos.z / this.tileSize.y);
         return ret.add(this.tileNum.clone().divideScalar(2)).add(this.mapPos);
