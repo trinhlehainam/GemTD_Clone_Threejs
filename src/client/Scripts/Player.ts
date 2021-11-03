@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import {GUI} from 'dat.gui'
 
 import ModelDataMng from '../Systems/ModelDataMng'
 
@@ -24,10 +23,6 @@ export default class Player {
 
     private gameMng: GameMng
     private mapPos: THREE.Vector2
-    
-    // Debug
-    private gui: GUI
-    private options: any
 
     // Test Rotation
     private pointer: THREE.Vector2
@@ -54,9 +49,6 @@ export default class Player {
             [INPUT_ID.SPACE, INPUT_ID.SPACE, INPUT_ID.SPACE]
         )
 
-        this.gui = new GUI();
-        this.options = {};
-
         this.pointer = new THREE.Vector2(); 
         this.raycaster = new THREE.Raycaster();
         this.camera = camera;
@@ -80,11 +72,9 @@ export default class Player {
         transform.scale.multiplyScalar(3);
 
         this.scene.add(this.model);
-        this.createGUI();
     }
 
     destroy(): void {
-        this.gui.destroy();
     }
     
     processInput(): void {
@@ -151,48 +141,9 @@ export default class Player {
         this.mixer?.update(dt_s);
         this.enitty.Update(dt_s);
 
-        this.updateGUI();
     }
 
     render(): void {
-        this.gui.updateDisplay();
-    }
-
-    private createGUI(): void {
-        const idle = this.actions['idle'];
-        const walk = this.actions['walk'];
-        const run = this.actions['run'];
-
-        this.options = {
-            idleWeight: idle.getEffectiveWeight(),
-            walkWeight: walk.getEffectiveWeight(),
-            runWeight: run.getEffectiveWeight(),
-            animKey: this.currentActionKey,
-            animList: Object.keys(this.actions)
-        }
-
-        const anim = this.gui.addFolder('Animation');
-        anim.add(this.options, 'animKey');
-        console.log(this.options.animList);
-        anim.open();
-
-        const weight = this.gui.addFolder('Weights');
-        weight.add(this.options, 'idleWeight', 0, 1 , 0.1);
-        weight.add(this.options, 'walkWeight', 0, 1, 0.1);
-        weight.add(this.options, 'runWeight', 0, 1, 0.1);
-        weight.open();
-    }
-
-    private updateGUI(): void {
-        if (Object.keys(this.actions).length == 0) return;
-
-        const idle = this.actions['idle'];
-        const walk = this.actions['walk'];
-        const run = this.actions['run'];
-        this.options.idleWeight = idle.getEffectiveWeight();
-        this.options.walkWeight = walk.getEffectiveWeight();
-        this.options.runWeight = run.getEffectiveWeight();
-        this.options.animKey = this.currentActionKey;
     }
 
     setAnim(animKey: string, duration: number): void {

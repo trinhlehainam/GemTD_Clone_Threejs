@@ -68,6 +68,7 @@ export default class GameScene extends IScene {
     }
 
     Render(): void {
+        this.gameMng?.Render();
         this.player?.render();
         this.stats.update();
     }

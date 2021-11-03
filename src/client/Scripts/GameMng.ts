@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import {GUI} from 'dat.gui'
 
 import TileMap2 from '../Utils/TileMap2'
 import TileMap2Pathfinding from '../Utils/TileMap2Pathfinding'
@@ -22,6 +23,10 @@ export default class GameMng {
     //
     private enemies: Array<Enemy>
     private isStart: boolean
+
+    // Debug
+    private gui: GUI
+    private options: any
 
     constructor(scene: THREE.Scene, camera: THREE.Camera) {
         this.scene = scene;
@@ -84,15 +89,17 @@ export default class GameMng {
         this.pathfinder.goals[4] = new THREE.Vector2(18, 32);
         this.pathfinder.goals[5] = new THREE.Vector2(32, 32);
 
-        this.pathfinder.starts[0] = new THREE.Vector2(0, 0);
         for (const i of this.pathfinder.goals.keys()){
             if (i === 0){
-                this.pathfinder.starts[i] = new THREE.Vector2(0, 0);
+                this.pathfinder.starts[i] = new THREE.Vector2(4, 4);
                 continue;
             }
             this.pathfinder.starts[i] = this.pathfinder.goals[i-1]
         }
 
+        const debugSphere = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({color: 0xff0000}));
+        debugSphere.position.copy(this.map.getWorldPosFromTileIndex(this.pathfinder.starts[0]));
+        this.scene.add(debugSphere);
         this.pathfinder.goals.forEach(
             goal => {
                 const debugSphere = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({color: 0xff0000}));
@@ -108,6 +115,18 @@ export default class GameMng {
         this.isStart = false;
 
         this.pathfinder.generatePaths();
+        
+        this.gui = new GUI();
+        this.options = {
+            state: 'Wait',
+            level: 1,
+            gold: 0,
+        }
+
+        this.gui.add(this.options, 'state');
+        this.gui.add(this.options, 'level');
+        this.gui.add(this.options, 'gold');
+        this.gui.open();
     }
 
     GetMap(): TileMap2 { return this.map; }
@@ -198,6 +217,7 @@ export default class GameMng {
     }
 
     Update(delta_s: number): void {
+        this.updateGUI();
         if (!this.isStart) return;
         for (const enemy of this.enemies)
             enemy.update(delta_s);
@@ -216,6 +236,10 @@ export default class GameMng {
     }
 
     Render(): void {
+        this.gui.updateDisplay();
+    }
 
+    private updateGUI(): void {
+        this.options.state = this.isStart ? 'Start': 'Wait';
     }
 }
