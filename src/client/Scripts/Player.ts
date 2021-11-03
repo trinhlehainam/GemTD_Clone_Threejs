@@ -142,6 +142,10 @@ export default class Player {
             this.gameMng.CheckTile();
         }
 
+        if (this.constroller.IsJustPressed(INPUT_ID.SPACE)){
+            this.gameMng.Start();
+        }
+
         this.gameMng.SetCursorVisible(cursor);
 
         this.mixer?.update(dt_s);

@@ -7,7 +7,7 @@ export default class TileMap2Pathfinding {
     private baseGrid: PF.Grid
     private grid: PF.Grid
     private finder: PF.AStarFinder
-    private paths: Array<Vector2[]>
+    private arrayPaths: Array<Vector2[]>
     private blocks: Array<boolean>
 
     public starts: Array<Vector2>
@@ -19,7 +19,7 @@ export default class TileMap2Pathfinding {
 
         this.starts = [];
         this.goals = [];
-        this.paths = [];
+        this.arrayPaths = [];
 
         this.baseGrid = new PF.Grid(this.map.tileNum.x, this.map.tileNum.y);
         this.grid = this.baseGrid.clone();
@@ -27,6 +27,8 @@ export default class TileMap2Pathfinding {
             diagonalMovement: PF.DiagonalMovement.OnlyWhenNoObstacles,
         });
     }
+
+    getArrayPaths(): Array<Vector2[]> { return this.arrayPaths; }
 
     setBlockTile(tileIdx: Vector2, flag: boolean): void{
         flag? this.addBlockTile(tileIdx): this.removeBlockTile(tileIdx);
@@ -45,7 +47,7 @@ export default class TileMap2Pathfinding {
     checkTileAndUpdatePaths(tileIdx: Vector2): boolean {
         if (!this.isChangeableTile(tileIdx)) return false;
         const tmpGrid = this.grid.clone();
-        const tmpPaths = [...this.paths];
+        const tmpPaths = [...this.arrayPaths];
         const tmpBlocks = [...this.blocks];
 
         this.addBlockTile(tileIdx);
@@ -54,7 +56,7 @@ export default class TileMap2Pathfinding {
         
         if (!ret){
             this.grid = tmpGrid;
-            this.paths = tmpPaths;
+            this.arrayPaths = tmpPaths;
             this.blocks = tmpBlocks;
         }
 
@@ -64,7 +66,7 @@ export default class TileMap2Pathfinding {
     precheckTile(tileIdx: Vector2): boolean {
         if (!this.isChangeableTile(tileIdx)) return false;
         const tmpGrid = this.grid.clone();
-        const tmpPaths = [...this.paths];
+        const tmpPaths = [...this.arrayPaths];
         const tmpBlocks = [...this.blocks];
 
         this.addBlockTile(tileIdx);
@@ -72,7 +74,7 @@ export default class TileMap2Pathfinding {
         const ret = this.generatePaths();
 
         this.grid = tmpGrid;
-        this.paths = tmpPaths;
+        this.arrayPaths = tmpPaths;
         this.blocks = tmpBlocks;
 
         return ret;
@@ -103,14 +105,14 @@ export default class TileMap2Pathfinding {
             const paths = this.finder.findPath(
                 startGrid.x, startGrid.y, destGrid.x, destGrid.y, grid);
             if (!paths.length) return false;
-            this.paths[i] = [];
+            this.arrayPaths[i] = [];
             paths.forEach(path => {
                 const pos = this.map.getWorldPosFromTileIndex(path[0], path[1]);
-                this.paths[i].push(new Vector2(pos.x, pos.z)); 
+                this.arrayPaths[i].push(new Vector2(pos.x, pos.z)); 
             });
-            if (!this.paths.length) return false;
+            if (!this.arrayPaths.length) return false;
 
-            this.paths[i].forEach(path => path.setY(0));
+            // this.arrayPaths[i].forEach(path => path.setY(0));
         }
         return true;
     }

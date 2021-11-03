@@ -2,6 +2,7 @@ import * as THREE from 'three'
 
 import TileMap2 from '../Utils/TileMap2'
 import TileMap2Pathfinding from '../Utils/TileMap2Pathfinding'
+import Enemy from './Enemy'
 
 // TODO: Refactoring function name
 // TODO: Refactoring convert player tile pos
@@ -17,6 +18,10 @@ export default class GameMng {
     private camera: THREE.Camera
 
     private box: THREE.Mesh
+
+    //
+    private enemies: Array<Enemy>
+    private isStart: boolean
 
     constructor(scene: THREE.Scene, camera: THREE.Camera) {
         this.scene = scene;
@@ -87,7 +92,6 @@ export default class GameMng {
             }
             this.pathfinder.starts[i] = this.pathfinder.goals[i-1]
         }
-        console.log(this.pathfinder.starts);
 
         this.pathfinder.goals.forEach(
             goal => {
@@ -99,12 +103,33 @@ export default class GameMng {
 
         const box = new THREE.Mesh(new THREE.BoxGeometry(this.map.tileSize.x, this.map.tileSize.x * 2, this.map.tileSize.y), new THREE.MeshNormalMaterial());
         this.box = box.clone();
+        
+        this.enemies = [];
+        this.isStart = false;
 
+        this.pathfinder.generatePaths();
     }
 
     GetMap(): TileMap2 { return this.map; }
 
+    Start(): void {
+        if (this.isStart) return;
+        const enemy = new Enemy(this.scene, this);
+        enemy.setPos(this.map.getWorldPosFromTileIndex(this.pathfinder.starts[0]));
+        const arrayPaths = this.pathfinder.getArrayPaths();
+        console.log(arrayPaths);
+        const enemyPaths = arrayPaths.map(
+            paths => paths.map(
+                path => new THREE.Vector3(path.x, 0, path.y)));
+        console.log(enemyPaths);
+        enemy.setPaths(enemyPaths);
+        
+        this.enemies.push(enemy);
+        this.isStart = true;
+    }
+
     AddObject(): void {
+        if (this.isStart) return;
         if (!this.IsTileEmpty()) return;
         const clone = this.box.clone();
         clone.position.copy(this.cursor.position).setY(0);
@@ -123,6 +148,7 @@ export default class GameMng {
     }
 
     RemoveObject(): void {
+        if (this.isStart) return;
         if (this.IsTileEmpty()) return;
     }
 
@@ -172,7 +198,21 @@ export default class GameMng {
     }
 
     Update(delta_s: number): void {
-
+        if (!this.isStart) return;
+        for (const enemy of this.enemies)
+            enemy.update(delta_s);
+        
+        const remove: Array<number> = [];
+        for (const [idx, enemy] of this.enemies.entries())
+            if (enemy.isReachGoal())
+                remove.push(idx);
+        
+        remove.forEach(idx => {
+            this.enemies[idx].destroy();
+            this.enemies.splice(idx, 1)
+        })
+        if (!this.enemies.length)
+            this.isStart = false;
     }
 
     Render(): void {
