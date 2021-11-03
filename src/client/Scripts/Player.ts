@@ -10,7 +10,7 @@ import INPUT_ID from '../Inputs/InputID'
 import KeyboardInput from '../Inputs/KeyboardInput'
 import InputCommand from '../Inputs/InputCommand'
 
-import Stage from './Stage'
+import GameMng from './GameMng'
 
 export default class Player {
     private enitty: Entity
@@ -22,7 +22,7 @@ export default class Player {
     private constroller: KeyboardInput
     private inputCommand: InputCommand
 
-    private stage: Stage
+    private gameMng: GameMng
     private mapPos: THREE.Vector2
     
     // Debug
@@ -35,9 +35,9 @@ export default class Player {
     private camera: THREE.Camera
     private dest: THREE.Vector3
 
-    constructor(scene: THREE.Scene, stage: Stage, camera: THREE.Camera){
+    constructor(scene: THREE.Scene, stage: GameMng, camera: THREE.Camera){
         this.scene = scene;
-        this.stage = stage;
+        this.gameMng = stage;
         this.mapPos = new THREE.Vector2(); 
 
         this.enitty = new Entity('player');
@@ -132,17 +132,17 @@ export default class Player {
         let cursor: boolean = false;
         if (this.constroller.IsPressed(INPUT_ID.SHIFT)){
             cursor = true;
-            this.stage.SetCursorPos(transform.position);
-            this.stage.CheckTile();
+            this.gameMng.SetCursorPos(transform.position);
+            this.gameMng.CheckTile();
         }
 
         if (this.constroller.IsJustPressed(INPUT_ID.ADD)){
-            this.stage.SetCursorPos(transform.position);
-            this.stage.AddObject();
-            this.stage.CheckTile();
+            this.gameMng.SetCursorPos(transform.position);
+            this.gameMng.AddObject();
+            this.gameMng.CheckTile();
         }
 
-        this.stage.SetCursorVisible(cursor);
+        this.gameMng.SetCursorVisible(cursor);
 
         this.mixer?.update(dt_s);
         this.enitty.Update(dt_s);

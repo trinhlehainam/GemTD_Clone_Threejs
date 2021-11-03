@@ -6,7 +6,7 @@ import ModelDataMng from '../Systems/ModelDataMng'
 import Entity from '../GameObjects/Entity'
 import Transform from '../Components/Transform'
 
-import Stage from './Stage'
+import GameMng from './GameMng'
 
 export default class Enemy {
     private enitty: Entity
@@ -16,16 +16,16 @@ export default class Enemy {
     private actions: {[key: string]: THREE.AnimationAction}
     private currentActionKey: string
 
-    private stage: Stage
+    private gameMng: GameMng
     private mapPos: THREE.Vector2
     
     // Debug
     private gui: GUI
     private options: any
 
-    constructor(scene: THREE.Scene, stage: Stage, camera: THREE.Camera){
+    constructor(scene: THREE.Scene, gameMng: GameMng, camera: THREE.Camera){
         this.scene = scene;
-        this.stage = stage;
+        this.gameMng = gameMng;
         this.mapPos = new THREE.Vector2(); 
 
         this.enitty = new Entity('player');

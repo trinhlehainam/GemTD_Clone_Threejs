@@ -8,14 +8,14 @@ import IScene from './IScene'
 import SceneMng from '../Systems/SceneMng'
 import TitleScene from './TitleScene'
 
-import Stage  from '../Scripts/Stage'
+import GameMng  from '../Scripts/GameMng'
 import Player from '../Scripts/Player'
 import Enemy from '../Scripts/Enemy'
 
 export default class GameScene extends IScene {
     private player?: Player
     private enemy?: Enemy
-    private stage: Stage
+    private stage: GameMng
     
     // Debug
     private stats: Stats
@@ -35,7 +35,7 @@ export default class GameScene extends IScene {
         this.stats = Stats();
         document.body.appendChild(this.stats.domElement);
 
-        this.stage = new Stage(this.scene, this.camera);
+        this.stage = new GameMng(this.scene, this.camera);
     }
 
     Destroy(): void {

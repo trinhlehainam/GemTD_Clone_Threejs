@@ -6,11 +6,10 @@ import TileMap2Pathfinding from '../Utils/TileMap2Pathfinding'
 // TODO: Refactoring function name
 // TODO: Refactoring convert player tile pos
 // TODO: Create object base class (BLOCK, TOWER)
-export default class Stage {
+export default class GameMng {
     // map
     private map: TileMap2
     private objects: Array<THREE.Mesh>
-    private blockGrids: Array<boolean>
     private pathfinder: TileMap2Pathfinding 
 
     private scene: THREE.Scene
@@ -25,7 +24,6 @@ export default class Stage {
 
         this.map = new TileMap2(new THREE.Vector2(38, 38), new THREE.Vector2(5, 5));
         this.objects = new Array(this.map.tileNum.x * this.map.tileNum.y);
-        this.blockGrids = Array<boolean>(this.map.tileNum.x * this.map.tileNum.y).fill(false);
 
         const groundGeo = new THREE.PlaneGeometry(
             this.map.tileNum.x * this.map.tileSize.x, this.map.tileNum.y * this.map.tileSize.y,
