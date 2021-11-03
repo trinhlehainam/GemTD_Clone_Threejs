@@ -15,7 +15,7 @@ import Enemy from '../Scripts/Enemy'
 export default class GameScene extends IScene {
     private player?: Player
     private enemy?: Enemy
-    private stage: GameMng
+    private gameMng: GameMng
     
     // Debug
     private stats: Stats
@@ -35,7 +35,7 @@ export default class GameScene extends IScene {
         this.stats = Stats();
         document.body.appendChild(this.stats.domElement);
 
-        this.stage = new GameMng(this.scene, this.camera);
+        this.gameMng = new GameMng(this.scene, this.camera);
     }
 
     Destroy(): void {
@@ -53,8 +53,8 @@ export default class GameScene extends IScene {
             async (resolve, reject) => {
                 // Wait until Player's resources are loaded before create Player
                 await ModelDataMng.GetAsync('eve', 'swat-guy');
-                this.player = new Player(this.scene, this.stage, this.camera);
-                this.enemy = new Enemy(this.scene, this.stage, this.camera);
+                this.player = new Player(this.scene, this.gameMng, this.camera);
+                this.enemy = new Enemy(this.scene, this.gameMng);
                 //
                 resolve(true);
                 reject('INIT ERROR: Fail to initialize GameScene !!!');

@@ -18,21 +18,16 @@ export default class Enemy {
 
     private gameMng: GameMng
     private mapPos: THREE.Vector2
-    
-    // Debug
-    private gui: GUI
-    private options: any
 
-    constructor(scene: THREE.Scene, gameMng: GameMng, camera: THREE.Camera){
+    private paths: Array<THREE.Vector3[]>
+    
+    constructor(scene: THREE.Scene, gameMng: GameMng){
         this.scene = scene;
         this.gameMng = gameMng;
         this.mapPos = new THREE.Vector2(); 
 
         this.enitty = new Entity('player');
         this.actions = {};
-
-        this.gui = new GUI();
-        this.options = {};
 
         this.model = ModelDataMng.GetObject3D('swat-guy') as THREE.Group;
         this.model.traverse(node => {
@@ -53,10 +48,11 @@ export default class Enemy {
         transform.scale.multiplyScalar(3);
 
         this.scene.add(this.model);
+
+        this.paths = [];
     }
 
     destroy(): void {
-        this.gui.destroy();
     }
     
     processInput(): void {
@@ -76,7 +72,12 @@ export default class Enemy {
     }
 
     render(): void {
-        this.gui.updateDisplay();
+    }
+
+    setPaths(paths: Array<THREE.Vector2[]>): void {
+        for (const [idx, path] of paths.entries()){
+            path.forEach(pos => this.paths[idx].push(this.gameMng.GetMap().getWorldPosFromTileIndex(pos)));
+        }
     }
 
     setAnim(animKey: string, duration: number): void {

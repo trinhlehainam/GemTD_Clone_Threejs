@@ -66,7 +66,7 @@ export default class Player {
         this.model.traverse(node => {
             if (node instanceof THREE.Mesh)
                 node.castShadow = true;
-        })
+        });
         this.mixer = new THREE.AnimationMixer(this.model);
         const animations = ModelDataMng.GetAnimationClips('eve') as THREE.AnimationClip[];
         this.currentActionKey = "idle";

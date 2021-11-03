@@ -102,6 +102,8 @@ export default class GameMng {
 
     }
 
+    GetMap(): TileMap2 { return this.map; }
+
     AddObject(): void {
         if (!this.IsTileEmpty()) return;
         const clone = this.box.clone();
