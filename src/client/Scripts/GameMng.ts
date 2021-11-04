@@ -150,14 +150,14 @@ export default class GameMng {
     AddObject(): void {
         if (this.isStart) return;
         if (!this.IsTileEmpty()) return;
+        const cursorTilePos = this.GetCursorMapPos();
+        const isValid = this.pathfinder.addTileAndUpdatePaths(cursorTilePos);
+        if (!isValid) return;
         const clone = this.box.clone();
         clone.position.copy(this.cursor.position).setY(0);
         clone.scale.multiplyScalar(0.75);
         clone.updateMatrix();
-        const cursorTilePos = this.GetCursorMapPos();
-        const isValid = this.pathfinder.checkTileAndUpdatePaths(cursorTilePos);
-        if (!isValid) return;
-        this.objects[this.GetTileIndex(cursorTilePos)] = clone;
+        this.objects[this.map.getNumIndexFromTileIndex(cursorTilePos)] = clone;
         this.scene.add(clone);
     }
 
@@ -169,15 +169,18 @@ export default class GameMng {
     RemoveObject(): void {
         if (this.isStart) return;
         if (this.IsTileEmpty()) return;
-    }
-
-    GetTileIndex(tilePos: THREE.Vector2): number {
-        return tilePos.y * this.map.tileNum.x + tilePos.x;
+        const cursorTilePos = this.GetCursorMapPos();
+        const numIdx = this.map.getNumIndexFromTileIndex(cursorTilePos);
+        const isValid = this.pathfinder.removeTileAndUpdatePaths(cursorTilePos);
+        if (!isValid) return;
+        const obj = this.objects[numIdx];
+        this.scene.remove(obj);
+        delete this.objects[numIdx];
     }
 
     IsTileEmpty(): boolean {
         const cursorTilePos = this.GetCursorMapPos();
-        return !this.objects[this.GetTileIndex(cursorTilePos)];
+        return !this.objects[this.map.getNumIndexFromTileIndex(cursorTilePos)];
     }
 
     private GetCursorMapPos(): THREE.Vector2 {

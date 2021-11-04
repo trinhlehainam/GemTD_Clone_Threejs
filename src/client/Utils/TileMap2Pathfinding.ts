@@ -44,7 +44,8 @@ export default class TileMap2Pathfinding {
         tileIndices.forEach(idx => this.grid.setWalkableAt(idx.x, idx.y, false));
     }
 
-    checkTileAndUpdatePaths(tileIdx: Vector2): boolean {
+    addTileAndUpdatePaths(tileIdx: Vector2): boolean {
+        if (!this.isInsideMap(tileIdx)) return false;
         if (!this.isChangeableTile(tileIdx)) return false;
         const tmpGrid = this.grid.clone();
         const tmpPaths = [...this.arrayPaths];
@@ -63,7 +64,19 @@ export default class TileMap2Pathfinding {
         return ret;
     }
 
+    removeTileAndUpdatePaths(tileIdx: Vector2): boolean {
+        if (!this.isInsideMap(tileIdx)) return false;
+        if (!this.isChangeableTile(tileIdx)) return false;
+
+        this.removeBlockTile(tileIdx);
+        this.updateBlockTile();
+        this.generatePaths();
+
+        return true;
+    }
+
     precheckTile(tileIdx: Vector2): boolean {
+        if (!this.isInsideMap(tileIdx)) return false;
         if (!this.isChangeableTile(tileIdx)) return false;
         const tmpGrid = this.grid.clone();
         const tmpPaths = [...this.arrayPaths];
@@ -85,7 +98,6 @@ export default class TileMap2Pathfinding {
     }
 
     private removeBlockTile(tileIdx: Vector2): void {
-        if (!this.isChangeableTile(tileIdx)) return;
         this.blocks[this.map.getNumIndexFromTileIndex(tileIdx)] = false;
     }
 
@@ -93,6 +105,14 @@ export default class TileMap2Pathfinding {
         if (tileIdx.equals(this.starts[0]))
             return false;
         if (this.goals.map(idx => idx.equals(tileIdx)).includes(true))
+            return false;
+        return true;
+    }
+    
+    private isInsideMap(tileIdx: Vector2): boolean {
+        if (tileIdx.x < 0 || tileIdx.y < 0) return false;
+        if (tileIdx.x > this.map.tileNum.x - 1 ||
+           tileIdx.y > this.map.tileNum.y - 1)
             return false;
         return true;
     }

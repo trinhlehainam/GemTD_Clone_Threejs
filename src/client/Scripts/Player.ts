@@ -132,6 +132,12 @@ export default class Player {
             this.gameMng.CheckTile();
         }
 
+        if (this.constroller.IsJustPressed(INPUT_ID.DELETE)){
+            this.gameMng.SetCursorPos(transform.position);
+            this.gameMng.RemoveObject();
+            this.gameMng.CheckTile();
+        }
+
         if (this.constroller.IsJustPressed(INPUT_ID.SPACE)){
             this.gameMng.Start();
         }
