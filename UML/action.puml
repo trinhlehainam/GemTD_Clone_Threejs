@@ -1,0 +1,15 @@
+@startuml
+abstract class IObject{}
+abstract class IComponent{}
+
+class Action{
+    +processInput()
+    +update()
+    +physicsUpdate()
+    +animationUpdate()
+    +render()
+}
+
+IObject <|--IComponent
+IComponent <|-- Action
+@enduml

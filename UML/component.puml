@@ -1,0 +1,24 @@
+@startuml
+skinparam groupInheritance 3
+
+abstract class IObject{}
+class GameObject {}
+
+abstract class IComponent {
+    + gameObject: GameObject
+}
+
+class Transform {}
+class AnimatorController {}
+class Mesh {}
+class Action {}
+abstract class ICollider {}
+
+IObject <|-- IComponent
+IComponent "1..*" -left-o "1" GameObject: part of
+IComponent <|-- Transform
+IComponent <|-- Mesh
+IComponent <|-- AnimatorController
+IComponent <|-- ICollider
+IComponent <|-- Action
+@enduml

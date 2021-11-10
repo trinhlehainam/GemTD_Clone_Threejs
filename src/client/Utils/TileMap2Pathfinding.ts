@@ -131,8 +131,6 @@ export default class TileMap2Pathfinding {
                 this.arrayPaths[i].push(new Vector2(pos.x, pos.z)); 
             });
             if (!this.arrayPaths.length) return false;
-
-            // this.arrayPaths[i].forEach(path => path.setY(0));
         }
         return true;
     }

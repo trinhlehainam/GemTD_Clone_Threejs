@@ -179,8 +179,8 @@ export default class GameMng {
     }
 
     IsTileEmpty(): boolean {
-        const cursorTilePos = this.GetCursorMapPos();
-        return !this.objects[this.map.getNumIndexFromTileIndex(cursorTilePos)];
+        const cursorPos = this.GetCursorMapPos();
+        return !this.objects[this.map.getNumIndexFromTileIndex(cursorPos)];
     }
 
     private GetCursorMapPos(): THREE.Vector2 {
@@ -198,10 +198,6 @@ export default class GameMng {
     CheckTile(): void {
         (this.cursor.material as THREE.MeshBasicMaterial).color = new THREE.Color(0x00ff00);
         let isEmpty = this.IsTileEmpty();
-        const clone = this.box.clone();
-        clone.position.copy(this.cursor.position).setY(0);
-        clone.scale.multiplyScalar(0.75);
-        clone.updateMatrix();
         if (!isEmpty){
             this.SetCursorColor();
             return;

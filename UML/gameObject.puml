@@ -1,0 +1,25 @@
+@startuml
+
+abstract class IObject{}
+abstract class IComponent {}
+
+class GameObject {
+    + transform: Transform
+
+    - tag: String
+    - isActive: bool
+    - components: Map<type, IComponent>
+    --
+    + getTag(): String
+    + setActive(flag: boolean): void
+    + addComponent(type: Component): Component
+    + getComponent(type: Component): Component
+    -- static --
+    {static} findByName(name: String)
+    {static} findByTag(tag: String)
+}
+
+IObject <|-- GameObject
+GameObject "1" *-left- "1..*" IComponent : owns
+
+@enduml
