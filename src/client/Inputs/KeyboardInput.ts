@@ -35,5 +35,4 @@ export default class KeyboardInput extends IInput {
     private keyUp(event: KeyboardEvent): void {
         this.keyboardKeys[event.keyCode] = false;
     }
-
 }
