@@ -1,0 +1,10 @@
+@startuml
+participant client
+participant server
+
+client --> server ++: request id
+server --> server --: store client id
+
+
+
+@enduml

@@ -65,9 +65,8 @@ export default class SceneMng {
             );
             
             // Stop loop and wait until change scene set up is done
-            this.Stop();
             LoadMng.EnableLoadingScene(true);
-            return;
+            return this.Stop();
         }
 
         this.scene.ProcessInput();
